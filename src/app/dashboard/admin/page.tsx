@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Shield, Clock, Loader2, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import { Complaint, LostItem, FoundItem, Resource, AdminTabType } from '../../../types/admin';
+import { Complaint, LostItem, FoundItem, Resource, AdminTabType } from '@/types/admin';
 import {
   AdminHeader,
   AdminTabs,
@@ -18,7 +18,7 @@ import {
   AdminLostItemsTab,
   AdminFoundItemsTab,
   AdminResourcesTab,
-} from '../../../components/admin';
+} from '@/components/admin';
 
 const statusConfig: Record<string, { color: string; bg: string; icon: React.ElementType }> = {
   pending: { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)', icon: Clock },
