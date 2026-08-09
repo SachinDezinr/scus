@@ -6,9 +6,6 @@ export async function sql(strings: TemplateStringsArray | string, ...values: any
     throw new Error('Neon DATABASE_URL is missing in environment variables.');
   }
   const queryFn = neon(databaseUrl);
-  if (typeof strings === 'string') {
-    return (await queryFn(strings, ...values)) as any[];
-  }
   return (await queryFn(strings, ...values)) as any[];
 }
 
@@ -18,6 +15,8 @@ let initPromise: Promise<void> | null = null;
 export async function ensureTablesExist() {
   if (tablesInitialized) return;
   if (initPromise) return initPromise;
+
+  tablesInitialized = true;
 
   initPromise = (async () => {
     try {
@@ -98,9 +97,8 @@ export async function ensureTablesExist() {
           created_at TIMESTAMPTZ DEFAULT NOW()
         );
       `;
-
-      tablesInitialized = true;
     } catch (err) {
+      tablesInitialized = false;
       console.error('Failed to ensure Neon database tables exist:', err);
     } finally {
       initPromise = null;
