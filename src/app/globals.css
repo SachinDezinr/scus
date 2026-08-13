@@ -88,15 +88,8 @@
   --sidebar-border: rgba(168, 139, 250, 0.1);
   --sidebar-ring: #a78bfa;
 
-  /* Default mobile font: native system font */
-  --app-font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-}
-
-/* PC / Desktop font: Poppins */
-@media (min-width: 768px) {
-  :root {
-    --app-font-sans: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
+  /* App font family: Poppins applied across all screen sizes */
+  --app-font-sans: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 @layer base {
