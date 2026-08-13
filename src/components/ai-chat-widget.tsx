@@ -116,8 +116,8 @@ export default function AIChatWidget() {
   };
 
   const prompts = user?.role === 'admin' 
-    ? ['Show system overview stats', 'Check active complaints', 'Search lost phones', 'Find study materials']
-    : ['Search Data Structures notes', 'Find lost black wallet', 'Check status of my complaints', 'Show recently uploaded PYQs'];
+    ? ['Show system overview stats', 'Check active complaints', 'Lost & Found Registry', 'Find study notes']
+    : ['Find study notes', 'Lost & Found Registry', 'Check status of my complaints', 'DSA notes'];
 
   return (
     <>

@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
       query.includes('how many users') ||
       query.includes('how many complaints');
 
-    if (isAdminIntent) {
+    if (isAdminIntent && (query.includes('admin') || query.includes('stat') || query.includes('users') || query.includes('overview'))) {
       if (isAdmin) {
         const [complaintStats] = await sql`
           SELECT 
@@ -97,8 +97,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ reply, cards });
       } else {
         reply = `🔒 **Access Restricted:** System-wide overview metrics and administrative control panels are reserved exclusively for **Administrator** accounts.\n\nAs a student, you can ask me to:\n` +
-          `• Search study notes & PYQs (e.g. *"Find DSA notes"* or *"C++ materials"*)\n` +
-          `• Look up lost & found items (e.g. *"Is there any lost blue wallet?"*)\n` +
+          `• Search study notes & PYQs (e.g. *"Find study notes"* or *"DSA materials"*)\n` +
+          `• Look up lost & found items (e.g. *"Lost & Found Registry"*)\n` +
           `• Check the status of your own infrastructure complaints (e.g. *"Show my complaints"*)\n` +
           `• Report new issues or share study materials!`;
 
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
       'find', 'search', 'show', 'get', 'resource', 'resources', 'note', 'notes',
       'pyq', 'pyqs', 'study', 'materials', 'material', 'pdf', 'pdfs', 'for', 'the',
       'me', 'a', 'in', 'any', 'is', 'there', 'have', 'you', 'give', 'can', 'i',
-      'want', 'need', 'please', 'paper', 'papers', 'book', 'books', 'subject'
+      'want', 'need', 'please', 'paper', 'papers', 'book', 'books', 'subject', 'all'
     ]);
 
     const cleanTokens = query
@@ -130,7 +130,6 @@ export async function POST(req: NextRequest) {
       cleanTokens.some(token => SUBJECT_ACRONYMS[token] !== undefined);
 
     if (isExplicitResourceQuery) {
-      // Build search expanded terms with acronym synonyms
       let searchTerms: string[] = [];
       cleanTokens.forEach(token => {
         searchTerms.push(token);
@@ -150,10 +149,10 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      const topMatches = matchedResources.slice(0, 5);
+      const topMatches = matchedResources.slice(0, 8);
 
       if (topMatches.length > 0) {
-        const queryTermDisplay = cleanTokens.join(' ').toUpperCase() || 'requested subjects';
+        const queryTermDisplay = searchTerms.length > 0 ? cleanTokens.join(' ').toUpperCase() : 'All Available Resources';
         reply = `📚 I found **${topMatches.length} study material(s)** for **"${queryTermDisplay}"**:`;
         topMatches.forEach((r: any) => {
           cards.push({
@@ -177,10 +176,10 @@ export async function POST(req: NextRequest) {
     }
 
     // ── LOST AND FOUND INTENT ──
-    if (
+    const isLostFoundQuery = 
       query.includes('lost') ||
       query.includes('found') ||
-      query.includes('item') ||
+      query.includes('registry') ||
       query.includes('wallet') ||
       query.includes('phone') ||
       query.includes('bag') ||
@@ -189,9 +188,54 @@ export async function POST(req: NextRequest) {
       query.includes('laptop') ||
       query.includes('card') ||
       query.includes('umbrella') ||
-      query.includes('id')
-    ) {
-      const cleanKeywords = query.replace(/(find|search|show|get|lost|found|item|items|i|a|the|me|is|there|any|where|my)/g, '').trim();
+      query.includes('id');
+
+    if (isLostFoundQuery) {
+      // General registry request
+      const isRegistryRequest = query.includes('registry') || query.includes('all') || query.includes('summary') || query.includes('how many');
+
+      if (isRegistryRequest || (!query.includes('wallet') && !query.includes('phone') && !query.includes('bag') && !query.includes('key') && !query.includes('bottle') && !query.includes('laptop') && !query.includes('card') && !query.includes('umbrella') && !query.includes('id'))) {
+        const [lostCount] = await sql`SELECT COUNT(*)::int as total FROM lost_items`;
+        const [foundCount] = await sql`SELECT COUNT(*)::int as total FROM found_items`;
+
+        const recentLost = await sql`SELECT * FROM lost_items ORDER BY created_at DESC LIMIT 3`;
+        const recentFound = await sql`SELECT * FROM found_items ORDER BY created_at DESC LIMIT 3`;
+
+        reply = `📋 **Lost & Found Registry Overview:**\n\n` +
+          `• **Lost Items Reported:** ${lostCount.total}\n` +
+          `• **Found Items Reported:** ${foundCount.total}\n\n` +
+          `Here are the latest entries in the campus registry:`;
+
+        recentLost.forEach((item: any) => {
+          cards.push({
+            type: 'lost',
+            id: item.id,
+            title: `Lost: ${item.item_name} (${item.color})`,
+            subtitle: `Location: ${item.location || 'N/A'} • Owner: ${item.owner_name}`,
+            meta: `Contact: ${item.phone}`,
+            link: '/dashboard/lost-found',
+            badge: 'LOST',
+            badgeColor: '#ff6b6b',
+          });
+        });
+
+        recentFound.forEach((item: any) => {
+          cards.push({
+            type: 'found',
+            id: item.id,
+            title: `Found: ${item.item_name} (${item.color})`,
+            subtitle: `Location: ${item.location || 'N/A'} • Finder: ${item.finder_name}`,
+            meta: `Contact: ${item.phone}`,
+            link: '/dashboard/lost-found',
+            badge: 'FOUND',
+            badgeColor: '#00f5d4',
+          });
+        });
+
+        return NextResponse.json({ reply, cards });
+      }
+
+      const cleanKeywords = query.replace(/(find|search|show|get|lost|found|item|items|i|a|the|me|is|there|any|where|my|registry)/g, '').trim();
       const searchPattern = '%' + (cleanKeywords || '') + '%';
 
       const matchedLost = await sql`
@@ -207,7 +251,7 @@ export async function POST(req: NextRequest) {
       `;
 
       if (matchedLost.length > 0 || matchedFound.length > 0) {
-        reply = `✨ Here are the matching Lost & Found entries:`;
+        reply = `✨ Here are the matching Lost & Found entries for **"${cleanKeywords}"**:`;
         
         matchedLost.forEach((item: any) => {
           cards.push({
@@ -303,8 +347,8 @@ export async function POST(req: NextRequest) {
     if (query.includes('hello') || query.includes('hi') || query.includes('hey') || query.includes('help')) {
       reply = `Hello **${user.name}**! 👋 I am your Smart Campus AI Assistant.\n\n` +
         `Here is what you can ask me:\n` +
-        `1. **Search Notes & PYQs**: *"DSA notes"*, *"DBMS materials"*, or *"C++"* \n` +
-        `2. **Lost & Found**: *"Is there a lost blue wallet?"*\n` +
+        `1. **Search Notes & PYQs**: *"Find study notes"*, *"DSA materials"*, or *"C++"* \n` +
+        `2. **Lost & Found Registry**: *"Lost & Found Registry"* or *"Find lost wallet"*\n` +
         `3. **Complaints**: *"What is the status of my complaints?"*\n` +
         (isAdmin 
           ? `4. **Admin Dashboard Stats**: *"Show system overview stats"*` 
@@ -324,7 +368,7 @@ export async function POST(req: NextRequest) {
     const resList = allRes.filter(r => {
       const haystack = `${r.subject_name} ${r.course_name} ${r.uploader_name} ${r.file_name}`.toLowerCase();
       return fallbackTerms.some(term => haystack.includes(term.toLowerCase()));
-    }).slice(0, 3);
+    }).slice(0, 5);
 
     const lostList = await sql`SELECT * FROM lost_items WHERE item_name ILIKE ${'%' + searchToken + '%'} LIMIT 3`;
     const foundList = await sql`SELECT * FROM found_items WHERE item_name ILIKE ${'%' + searchToken + '%'} LIMIT 3`;
@@ -372,8 +416,8 @@ export async function POST(req: NextRequest) {
     }
 
     reply = `I couldn't find exact matches for **"${message}"**. Try asking:\n\n` +
-      `• **Resources**: *"DSA"*, *"Operating System notes"*, or *"DBMS PYQs"*\n` +
-      `• **Lost & Found**: *"Any found keys in library?"*\n` +
+      `• **Resources**: *"Find study notes"*, *"DSA"*, or *"DBMS"* \n` +
+      `• **Lost & Found**: *"Lost & Found Registry"*\n` +
       `• **Complaints**: *"Check status of my repair requests"*\n` +
       (isAdmin ? `• **Admin**: *"System stats overview"*` : '');
 

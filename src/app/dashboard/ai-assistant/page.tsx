@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Sparkles, Send, Bot, Search, BookOpen,
-  Building2, Shield, Download, ExternalLink, Lightbulb, Users
+  Building2, Shield, Download, ExternalLink, Lightbulb
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
@@ -108,14 +108,14 @@ export default function AIAssistantPage() {
     ? [
         { label: 'Admin Overview', query: 'Show system overview stats', icon: Shield, color: '#ff6b6b' },
         { label: 'Active Complaints', query: 'Check pending complaints', icon: Building2, color: '#fbbf24' },
-        { label: 'Lost & Found Query', query: 'Search lost items', icon: Search, color: '#00f5d4' },
-        { label: 'Resource Materials', query: 'Show uploaded study notes', icon: BookOpen, color: '#a78bfa' },
+        { label: 'Lost & Found Registry', query: 'Lost & Found Registry', icon: Search, color: '#00f5d4' },
+        { label: 'Resource Materials', query: 'Find study notes', icon: BookOpen, color: '#a78bfa' },
       ]
     : [
-        { label: 'Find Study Notes', query: 'Search Data Structures notes', icon: BookOpen, color: '#fbbf24' },
-        { label: 'Lost & Found Registry', query: 'Is there any lost wallet reported?', icon: Search, color: '#00f5d4' },
+        { label: 'Find Study Notes', query: 'Find study notes', icon: BookOpen, color: '#fbbf24' },
+        { label: 'Lost & Found Registry', query: 'Lost & Found Registry', icon: Search, color: '#00f5d4' },
         { label: 'My Complaints Status', query: 'Check status of my complaints', icon: Building2, color: '#ff6b6b' },
-        { label: 'PYQ Exam Papers', query: 'Show recent PYQs', icon: Lightbulb, color: '#a78bfa' },
+        { label: 'DSA Study Notes', query: 'DSA notes', icon: Lightbulb, color: '#a78bfa' },
       ];
 
   return (
