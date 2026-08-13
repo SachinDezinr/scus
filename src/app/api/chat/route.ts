@@ -82,11 +82,11 @@ export async function POST(req: NextRequest) {
         const [resCount] = await sql`SELECT COUNT(*)::int as total FROM resources`;
         const [userCount] = await sql`SELECT COUNT(*)::int as total FROM users`;
 
-        reply = `👋 **Hello Admin ${user.name}!** Here is the current system overview:\n\n` +
-          `• **Registered Users:** ${userCount.total}\n` +
-          `• **Complaints:** ${complaintStats.total} total (${complaintStats.pending} Pending, ${complaintStats.in_progress} In Progress, ${complaintStats.resolved} Resolved)\n` +
-          `• **Lost & Found:** ${lostCount.total} Lost items reported, ${foundCount.total} Found items reported\n` +
-          `• **Resource Library:** ${resCount.total} study materials uploaded`;
+        reply = `👋 Hello Admin **${user.name}**! Here is the current system overview:\n\n` +
+          `• Registered Users: **${userCount.total}**\n` +
+          `• Complaints: **${complaintStats.total}** total (${complaintStats.pending} Pending, ${complaintStats.in_progress} In Progress, ${complaintStats.resolved} Resolved)\n` +
+          `• Lost & Found: **${lostCount.total}** Lost items, **${foundCount.total}** Found items\n` +
+          `• Resource Library: **${resCount.total}** study materials uploaded`;
 
         cards.push(
           { type: 'stat', title: 'Pending Complaints', subtitle: `${complaintStats.pending} pending review`, badge: 'Pending', badgeColor: '#fbbf24', link: '/dashboard/admin' },
@@ -96,10 +96,10 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ reply, cards });
       } else {
-        reply = `🔒 **Access Restricted:** System-wide overview metrics and administrative control panels are reserved exclusively for **Administrator** accounts.\n\nAs a student, you can ask me to:\n` +
-          `• Search study notes & PYQs (e.g. *"Find study notes"* or *"DSA materials"*)\n` +
-          `• Look up lost & found items (e.g. *"Lost & Found Registry"*)\n` +
-          `• Check the status of your own infrastructure complaints (e.g. *"Show my complaints"*)\n` +
+        reply = `🔒 Access Restricted: System-wide overview metrics and administrative control panels are reserved exclusively for Administrator accounts.\n\nAs a student, you can ask me to:\n` +
+          `• Search study notes & PYQs\n` +
+          `• Look up lost & found items\n` +
+          `• Check the status of your own infrastructure complaints\n` +
           `• Report new issues or share study materials!`;
 
         return NextResponse.json({ reply, cards: [] });
@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
 
       if (topMatches.length > 0) {
         const queryTermDisplay = searchTerms.length > 0 ? cleanTokens.join(' ').toUpperCase() : 'All Available Resources';
-        reply = `📚 I found **${topMatches.length} study material(s)** for **"${queryTermDisplay}"**:`;
+        reply = `📚 I found **${topMatches.length} study material(s)** for "${queryTermDisplay}":`;
         topMatches.forEach((r: any) => {
           cards.push({
             type: 'resource',
@@ -168,8 +168,7 @@ export async function POST(req: NextRequest) {
         });
       } else {
         const queryDisplay = cleanTokens.join(' ') || query;
-        reply = `🔍 I couldn't find any uploaded study materials for **"${queryDisplay}"** yet.\n\n` +
-          `You can be the first to upload notes or PYQs for this subject on the Resource Exchange page!`;
+        reply = `🔍 I couldn't find any uploaded study materials for "${queryDisplay}" yet.\n\nYou can be the first to upload notes or PYQs for this subject on the Resource Exchange page!`;
       }
 
       return NextResponse.json({ reply, cards });
@@ -191,7 +190,6 @@ export async function POST(req: NextRequest) {
       query.includes('id');
 
     if (isLostFoundQuery) {
-      // General registry request
       const isRegistryRequest = query.includes('registry') || query.includes('all') || query.includes('summary') || query.includes('how many');
 
       if (isRegistryRequest || (!query.includes('wallet') && !query.includes('phone') && !query.includes('bag') && !query.includes('key') && !query.includes('bottle') && !query.includes('laptop') && !query.includes('card') && !query.includes('umbrella') && !query.includes('id'))) {
@@ -201,9 +199,9 @@ export async function POST(req: NextRequest) {
         const recentLost = await sql`SELECT * FROM lost_items ORDER BY created_at DESC LIMIT 3`;
         const recentFound = await sql`SELECT * FROM found_items ORDER BY created_at DESC LIMIT 3`;
 
-        reply = `📋 **Lost & Found Registry Overview:**\n\n` +
-          `• **Lost Items Reported:** ${lostCount.total}\n` +
-          `• **Found Items Reported:** ${foundCount.total}\n\n` +
+        reply = `📋 Lost & Found Registry Overview:\n\n` +
+          `• Lost Items Reported: **${lostCount.total}**\n` +
+          `• Found Items Reported: **${foundCount.total}**\n\n` +
           `Here are the latest entries in the campus registry:`;
 
         recentLost.forEach((item: any) => {
@@ -251,7 +249,7 @@ export async function POST(req: NextRequest) {
       `;
 
       if (matchedLost.length > 0 || matchedFound.length > 0) {
-        reply = `✨ Here are the matching Lost & Found entries for **"${cleanKeywords}"**:`;
+        reply = `✨ Here are the matching Lost & Found entries for "${cleanKeywords}":`;
         
         matchedLost.forEach((item: any) => {
           cards.push({
@@ -279,7 +277,7 @@ export async function POST(req: NextRequest) {
           });
         });
       } else {
-        reply = `🔍 I checked our Lost & Found registry, but couldn't find any item matching **"${cleanKeywords || 'your search'}"**. You can report a lost or found item easily!`;
+        reply = `🔍 I checked our Lost & Found registry, but couldn't find any item matching "${cleanKeywords || 'your search'}". You can report a lost or found item easily!`;
       }
 
       return NextResponse.json({ reply, cards });
@@ -301,7 +299,7 @@ export async function POST(req: NextRequest) {
     ) {
       if (isAdmin) {
         const allComplaints = await sql`SELECT * FROM complaints ORDER BY created_at DESC LIMIT 5`;
-        reply = `🛠️ **Admin Complaint Overview:** Showing recent complaints system-wide:`;
+        reply = `🛠️ Admin Complaint Overview: Showing recent complaints system-wide:`;
         allComplaints.forEach((c: any) => {
           cards.push({
             type: 'complaint',
@@ -336,7 +334,7 @@ export async function POST(req: NextRequest) {
             });
           });
         } else {
-          reply = `ℹ️ You currently have no active complaints filed. If something on campus needs repair (fans, projectors, lights), you can submit a report under Infrastructure Complaints!`;
+          reply = `ℹ️ You currently have no active complaints filed. If something on campus needs repair, you can submit a report under Infrastructure Complaints!`;
         }
       }
 
@@ -347,12 +345,12 @@ export async function POST(req: NextRequest) {
     if (query.includes('hello') || query.includes('hi') || query.includes('hey') || query.includes('help')) {
       reply = `Hello **${user.name}**! 👋 I am your Smart Campus AI Assistant.\n\n` +
         `Here is what you can ask me:\n` +
-        `1. **Search Notes & PYQs**: *"Find study notes"*, *"DSA materials"*, or *"C++"* \n` +
-        `2. **Lost & Found Registry**: *"Lost & Found Registry"* or *"Find lost wallet"*\n` +
-        `3. **Complaints**: *"What is the status of my complaints?"*\n` +
+        `1. Search Notes & PYQs: "Find study notes", "DSA materials", or "C++"\n` +
+        `2. Lost & Found Registry: "Lost & Found Registry" or "Find lost wallet"\n` +
+        `3. Complaints: "What is the status of my complaints?"\n` +
         (isAdmin 
-          ? `4. **Admin Dashboard Stats**: *"Show system overview stats"*` 
-          : `4. **Role note**: Administrative stats are restricted to Admin accounts.`);
+          ? `4. Admin Dashboard Stats: "Show system overview stats"` 
+          : `4. Note: Administrative stats are restricted to Admin accounts.`);
 
       return NextResponse.json({ reply, cards: [] });
     }
@@ -374,7 +372,7 @@ export async function POST(req: NextRequest) {
     const foundList = await sql`SELECT * FROM found_items WHERE item_name ILIKE ${'%' + searchToken + '%'} LIMIT 3`;
 
     if (resList.length > 0 || lostList.length > 0 || foundList.length > 0) {
-      reply = `🤖 Here is what I found for **"${searchToken.toUpperCase()}"**:`;
+      reply = `🤖 Here is what I found for "${searchToken.toUpperCase()}":`;
 
       resList.forEach((r: any) => {
         cards.push({
@@ -415,11 +413,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ reply, cards });
     }
 
-    reply = `I couldn't find exact matches for **"${message}"**. Try asking:\n\n` +
-      `• **Resources**: *"Find study notes"*, *"DSA"*, or *"DBMS"* \n` +
-      `• **Lost & Found**: *"Lost & Found Registry"*\n` +
-      `• **Complaints**: *"Check status of my repair requests"*\n` +
-      (isAdmin ? `• **Admin**: *"System stats overview"*` : '');
+    reply = `I couldn't find exact matches for "${message}". Try asking:\n\n` +
+      `• Resources: "Find study notes", "DSA", or "DBMS"\n` +
+      `• Lost & Found: "Lost & Found Registry"\n` +
+      `• Complaints: "Check status of my repair requests"\n` +
+      (isAdmin ? `• Admin: "System stats overview"` : '');
 
     return NextResponse.json({ reply, cards: [] });
   } catch (err) {

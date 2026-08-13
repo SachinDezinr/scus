@@ -27,6 +27,16 @@ interface Message {
   timestamp: string;
 }
 
+function renderFormattedText(text: string) {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
 export default function AIChatWidget() {
   const { user, authFetch } = useAuth();
   const pathname = usePathname();
@@ -35,7 +45,7 @@ export default function AIChatWidget() {
     {
       id: 'welcome',
       sender: 'bot',
-      text: `Hello! 👋 I'm your **Smart Campus AI Assistant**. How can I help you today?`,
+      text: `Hello! 👋 I'm your Smart Campus AI Assistant. How can I help you today?`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -182,7 +192,7 @@ export default function AIChatWidget() {
                         : 'bg-[#181826] border border-border/80 rounded-bl-xs text-foreground'
                     }`}
                   >
-                    {msg.text}
+                    {renderFormattedText(msg.text)}
                   </div>
 
                   {/* Actionable items/cards */}

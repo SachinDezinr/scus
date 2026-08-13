@@ -27,6 +27,16 @@ interface Message {
   timestamp: string;
 }
 
+function renderFormattedText(text: string) {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
 export default function AIAssistantPage() {
   const { user, authFetch } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
@@ -155,7 +165,7 @@ export default function AIAssistantPage() {
                       : 'glass-card bg-secondary/80 border-border text-foreground rounded-tl-xs'
                   }`}
                 >
-                  {msg.text}
+                  {renderFormattedText(msg.text)}
 
                   {/* Cards inside messages */}
                   {msg.cards && msg.cards.length > 0 && (
