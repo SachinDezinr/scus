@@ -90,7 +90,7 @@ export default function AboutPage() {
       >
         <div className="flex items-center justify-center gap-2 mb-3">
           <Heart size={16} className="text-coral" />
-          <p className="text-sm font-semibold">Developed by <span className="gradient-text font-bold">Sachin Panwar</span></p>
+          <p className="text-sm font-semibold">Created by <span className="gradient-text font-bold">Sachin Panwar</span></p>
         </div>
         <div className="flex items-center justify-center gap-4">
           <a href="mailto:sachinpanwarpay@gmail.com" className="w-10 h-10 rounded-xl glass-card flex items-center justify-center text-coral hover:bg-coral/10 transition-colors">
