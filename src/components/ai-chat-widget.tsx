@@ -3,10 +3,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Bot, X, Send, Sparkles, BookOpen, Search,
-  Building2, Shield, ArrowRight, Download, ExternalLink, RefreshCw
+  Bot, X, Send, Sparkles, Download, ExternalLink
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { usePathname } from 'next/navigation';
 
 interface ActionableCard {
   type: 'resource' | 'lost' | 'found' | 'complaint' | 'stat';
@@ -29,6 +29,7 @@ interface Message {
 
 export default function AIChatWidget() {
   const { user, authFetch } = useAuth();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -51,6 +52,11 @@ export default function AIChatWidget() {
       scrollToBottom();
     }
   }, [messages, open]);
+
+  // Hide floating widget if user is on the dedicated AI Assistant page
+  if (pathname === '/dashboard/ai-assistant') {
+    return null;
+  }
 
   const handleSend = async (customQuery?: string) => {
     const textToSend = customQuery || input.trim();
@@ -136,12 +142,12 @@ export default function AIChatWidget() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className="fixed bottom-24 right-4 md:right-6 z-40 w-[92vw] max-w-[400px] h-[540px] glass-card rounded-3xl flex flex-col shadow-2xl border border-primary/20 overflow-hidden"
+            className="fixed bottom-24 right-4 md:right-6 z-40 w-[92vw] max-w-[400px] h-[540px] bg-gradient-to-b from-[#12121a]/98 via-[#161624]/98 to-[#0d0d15]/99 backdrop-blur-2xl rounded-3xl flex flex-col shadow-2xl border border-primary/30 overflow-hidden"
           >
             {/* Header */}
-            <div className="p-4 border-b border-border bg-secondary/60 flex items-center justify-between shrink-0">
+            <div className="p-4 border-b border-border/80 bg-[#161624]/90 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#a78bfa]/20 to-[#00f5d4]/20 border border-[#00f5d4]/30 flex items-center justify-center text-[#00f5d4]">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#a78bfa]/25 to-[#00f5d4]/25 border border-[#00f5d4]/40 flex items-center justify-center text-[#00f5d4]">
                   <Sparkles size={20} />
                 </div>
                 <div>
@@ -161,7 +167,7 @@ export default function AIChatWidget() {
             </div>
 
             {/* Messages body */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-3.5 text-xs">
+            <div className="flex-1 p-4 overflow-y-auto space-y-3.5 text-xs bg-[#0f0f17]/60">
               {messages.map(msg => (
                 <motion.div
                   key={msg.id}
@@ -170,10 +176,10 @@ export default function AIChatWidget() {
                   className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-2xl p-3 leading-relaxed whitespace-pre-wrap ${
+                    className={`max-w-[85%] rounded-2xl p-3.5 leading-relaxed whitespace-pre-wrap shadow-sm ${
                       msg.sender === 'user'
-                        ? 'bg-gradient-to-r from-primary to-[#7b61ff] text-white rounded-br-xs'
-                        : 'glass-card bg-secondary/70 border-border rounded-bl-xs text-foreground'
+                        ? 'bg-gradient-to-r from-primary to-[#7b61ff] text-white rounded-br-xs font-medium'
+                        : 'bg-[#181826] border border-border/80 rounded-bl-xs text-foreground'
                     }`}
                   >
                     {msg.text}
@@ -188,7 +194,7 @@ export default function AIChatWidget() {
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: idx * 0.08 }}
-                          className="glass-card rounded-xl p-3 border-border hover:border-primary/40 transition-colors bg-secondary/40"
+                          className="rounded-xl p-3 border border-border/80 bg-[#1a1a2a] hover:border-primary/50 transition-colors"
                         >
                           <div className="flex items-start justify-between gap-2 mb-1">
                             <h4 className="font-bold text-xs truncate flex-1">{card.title}</h4>
@@ -196,7 +202,7 @@ export default function AIChatWidget() {
                               <span
                                 className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0"
                                 style={{
-                                  background: `${card.badgeColor || '#a78bfa'}20`,
+                                  background: `${card.badgeColor || '#a78bfa'}25`,
                                   color: card.badgeColor || '#a78bfa',
                                 }}
                               >
@@ -240,12 +246,12 @@ export default function AIChatWidget() {
 
             {/* Quick Suggestions */}
             {messages.length < 5 && (
-              <div className="px-3 py-1.5 border-t border-border/50 overflow-x-auto flex gap-1.5 shrink-0 no-scrollbar">
+              <div className="px-3 py-2 border-t border-border/60 bg-[#141420] overflow-x-auto flex gap-1.5 shrink-0 no-scrollbar">
                 {prompts.map((p, i) => (
                   <button
                     key={i}
                     onClick={() => handleSend(p)}
-                    className="text-[10px] whitespace-nowrap px-2.5 py-1 rounded-full glass-card text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all shrink-0"
+                    className="text-[10px] whitespace-nowrap px-2.5 py-1.5 rounded-full bg-[#1e1e30] border border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all shrink-0"
                   >
                     {p}
                   </button>
@@ -254,7 +260,7 @@ export default function AIChatWidget() {
             )}
 
             {/* Input field */}
-            <div className="p-3 border-t border-border bg-secondary/40 shrink-0">
+            <div className="p-3 border-t border-border/80 bg-[#161624] shrink-0">
               <form
                 onSubmit={e => {
                   e.preventDefault();
@@ -267,7 +273,7 @@ export default function AIChatWidget() {
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   placeholder="Ask AI anything..."
-                  className="flex-1 px-3.5 py-2.5 rounded-xl bg-secondary border border-border text-xs placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary transition-colors"
+                  className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#0e0e16] border border-border/80 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary transition-colors"
                 />
                 <button
                   type="submit"
