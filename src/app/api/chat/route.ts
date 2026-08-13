@@ -13,6 +13,28 @@ interface ActionableCard {
   badgeColor?: string;
 }
 
+// Acronym and synonym map for common academic subjects
+const SUBJECT_ACRONYMS: Record<string, string[]> = {
+  dsa: ['dsa', 'data structure', 'data structures', 'algorithm', 'algorithms', 'ds'],
+  ds: ['ds', 'dsa', 'data structure', 'data structures'],
+  os: ['os', 'operating system', 'operating systems'],
+  dbms: ['dbms', 'database', 'sql', 'rdbms', 'database management'],
+  cn: ['cn', 'computer network', 'computer networks', 'networking'],
+  oops: ['oops', 'oop', 'object oriented', 'cpp', 'c++', 'java'],
+  oop: ['oops', 'oop', 'object oriented', 'cpp', 'c++', 'java'],
+  toc: ['toc', 'theory of computation', 'automata', 'flat'],
+  se: ['se', 'software engineering', 'software design'],
+  cpp: ['cpp', 'c++', 'c language'],
+  'c++': ['cpp', 'c++', 'c language'],
+  python: ['python', 'py'],
+  py: ['python', 'py'],
+  ai: ['ai', 'artificial intelligence', 'machine learning', 'ml'],
+  ml: ['ml', 'machine learning', 'artificial intelligence', 'ai'],
+  web: ['web', 'web development', 'html', 'css', 'javascript', 'react', 'frontend', 'backend'],
+  math: ['math', 'maths', 'mathematics', 'calculus', 'discrete'],
+  maths: ['math', 'maths', 'mathematics', 'calculus', 'discrete'],
+};
+
 export async function POST(req: NextRequest) {
   try {
     await ensureTablesExist();
@@ -75,7 +97,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ reply, cards });
       } else {
         reply = `🔒 **Access Restricted:** System-wide overview metrics and administrative control panels are reserved exclusively for **Administrator** accounts.\n\nAs a student, you can ask me to:\n` +
-          `• Search study notes & PYQs (e.g. *"Find Data Structures notes"*)\n` +
+          `• Search study notes & PYQs (e.g. *"Find DSA notes"* or *"C++ materials"*)\n` +
           `• Look up lost & found items (e.g. *"Is there any lost blue wallet?"*)\n` +
           `• Check the status of your own infrastructure complaints (e.g. *"Show my complaints"*)\n` +
           `• Report new issues or share study materials!`;
@@ -84,36 +106,56 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ── RESOURCES INTENT ──
-    if (
+    // ── SMART RESOURCE SEARCH INTENT ──
+    const stopWords = new Set([
+      'find', 'search', 'show', 'get', 'resource', 'resources', 'note', 'notes',
+      'pyq', 'pyqs', 'study', 'materials', 'material', 'pdf', 'pdfs', 'for', 'the',
+      'me', 'a', 'in', 'any', 'is', 'there', 'have', 'you', 'give', 'can', 'i',
+      'want', 'need', 'please', 'paper', 'papers', 'book', 'books', 'subject'
+    ]);
+
+    const cleanTokens = query
+      .replace(/[^\w\s\+]/g, ' ')
+      .split(/\s+/)
+      .filter(w => !stopWords.has(w) && w.length > 0);
+
+    const isExplicitResourceQuery = 
       query.includes('resource') ||
       query.includes('note') ||
       query.includes('pyq') ||
       query.includes('study') ||
-      query.includes('subject') ||
       query.includes('pdf') ||
-      query.includes('book') ||
       query.includes('material') ||
-      query.includes('paper')
-    ) {
-      const keywords = query.replace(/(find|search|show|get|resource|notes|pyq|study|materials|pdf|for|the|me|a|in|any)/g, '').trim();
-      
-      let resourcesList;
-      if (keywords.length > 1) {
-        resourcesList = await sql`
-          SELECT * FROM resources 
-          WHERE subject_name ILIKE ${'%' + keywords + '%'} 
-             OR course_name ILIKE ${'%' + keywords + '%'}
-             OR uploader_name ILIKE ${'%' + keywords + '%'}
-          ORDER BY created_at DESC LIMIT 5
-        `;
-      } else {
-        resourcesList = await sql`SELECT * FROM resources ORDER BY created_at DESC LIMIT 5`;
+      query.includes('paper') ||
+      cleanTokens.some(token => SUBJECT_ACRONYMS[token] !== undefined);
+
+    if (isExplicitResourceQuery) {
+      // Build search expanded terms with acronym synonyms
+      let searchTerms: string[] = [];
+      cleanTokens.forEach(token => {
+        searchTerms.push(token);
+        if (SUBJECT_ACRONYMS[token]) {
+          searchTerms.push(...SUBJECT_ACRONYMS[token]);
+        }
+      });
+      searchTerms = Array.from(new Set(searchTerms)).filter(t => t.length > 0);
+
+      const allResources = await sql`SELECT * FROM resources ORDER BY created_at DESC LIMIT 100`;
+
+      let matchedResources = allResources;
+      if (searchTerms.length > 0) {
+        matchedResources = allResources.filter(r => {
+          const haystack = `${r.subject_name} ${r.course_name} ${r.uploader_name} ${r.file_name} ${r.tips || ''}`.toLowerCase();
+          return searchTerms.some(term => haystack.includes(term.toLowerCase()));
+        });
       }
 
-      if (resourcesList.length > 0) {
-        reply = `📚 I found **${resourcesList.length} resource(s)** ${keywords ? `matching "${keywords}"` : 'recently uploaded'}:`;
-        resourcesList.forEach((r: any) => {
+      const topMatches = matchedResources.slice(0, 5);
+
+      if (topMatches.length > 0) {
+        const queryTermDisplay = cleanTokens.join(' ').toUpperCase() || 'requested subjects';
+        reply = `📚 I found **${topMatches.length} study material(s)** for **"${queryTermDisplay}"**:`;
+        topMatches.forEach((r: any) => {
           cards.push({
             type: 'resource',
             id: r.id,
@@ -126,7 +168,9 @@ export async function POST(req: NextRequest) {
           });
         });
       } else {
-        reply = `🔍 I couldn't find any resources matching **"${keywords}"**. You can be the first to upload notes for this subject on the Resource Exchange page!`;
+        const queryDisplay = cleanTokens.join(' ') || query;
+        reply = `🔍 I couldn't find any uploaded study materials for **"${queryDisplay}"** yet.\n\n` +
+          `You can be the first to upload notes or PYQs for this subject on the Resource Exchange page!`;
       }
 
       return NextResponse.json({ reply, cards });
@@ -259,7 +303,7 @@ export async function POST(req: NextRequest) {
     if (query.includes('hello') || query.includes('hi') || query.includes('hey') || query.includes('help')) {
       reply = `Hello **${user.name}**! 👋 I am your Smart Campus AI Assistant.\n\n` +
         `Here is what you can ask me:\n` +
-        `1. **Search Notes & PYQs**: *"Find Data Structures notes"*\n` +
+        `1. **Search Notes & PYQs**: *"DSA notes"*, *"DBMS materials"*, or *"C++"* \n` +
         `2. **Lost & Found**: *"Is there a lost blue wallet?"*\n` +
         `3. **Complaints**: *"What is the status of my complaints?"*\n` +
         (isAdmin 
@@ -269,58 +313,66 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ reply, cards: [] });
     }
 
-    // ── FALLBACK SEARCH ──
-    const searchKeyword = query.split(' ').filter(w => w.length > 3)[0] || '';
-    if (searchKeyword) {
-      const resList = await sql`SELECT * FROM resources WHERE subject_name ILIKE ${'%' + searchKeyword + '%'} LIMIT 3`;
-      const lostList = await sql`SELECT * FROM lost_items WHERE item_name ILIKE ${'%' + searchKeyword + '%'} LIMIT 3`;
-      const foundList = await sql`SELECT * FROM found_items WHERE item_name ILIKE ${'%' + searchKeyword + '%'} LIMIT 3`;
-
-      if (resList.length > 0 || lostList.length > 0 || foundList.length > 0) {
-        reply = `🤖 Here is what I found in the public system for **"${searchKeyword}"**:`;
-
-        resList.forEach((r: any) => {
-          cards.push({
-            type: 'resource',
-            id: r.id,
-            title: r.subject_name,
-            subtitle: `Notes by ${r.uploader_name}`,
-            link: r.file_url,
-            badge: 'Resource',
-            badgeColor: '#fbbf24',
-          });
-        });
-
-        lostList.forEach((item: any) => {
-          cards.push({
-            type: 'lost',
-            id: item.id,
-            title: `Lost: ${item.item_name}`,
-            subtitle: `Contact: ${item.phone}`,
-            link: '/dashboard/lost-found',
-            badge: 'Lost Item',
-            badgeColor: '#ff6b6b',
-          });
-        });
-
-        foundList.forEach((item: any) => {
-          cards.push({
-            type: 'found',
-            id: item.id,
-            title: `Found: ${item.item_name}`,
-            subtitle: `Finder: ${item.finder_name}`,
-            link: '/dashboard/lost-found',
-            badge: 'Found Item',
-            badgeColor: '#00f5d4',
-          });
-        });
-
-        return NextResponse.json({ reply, cards });
-      }
+    // ── FALLBACK SEARCH WITH ACRONYM SUPPORT ──
+    const searchToken = cleanTokens[0] || query;
+    let fallbackTerms = [searchToken];
+    if (SUBJECT_ACRONYMS[searchToken]) {
+      fallbackTerms.push(...SUBJECT_ACRONYMS[searchToken]);
     }
 
-    reply = `I didn't quite catch that. Try asking:\n\n` +
-      `• **Resources**: *"Search Operating System notes"*\n` +
+    const allRes = await sql`SELECT * FROM resources ORDER BY created_at DESC LIMIT 50`;
+    const resList = allRes.filter(r => {
+      const haystack = `${r.subject_name} ${r.course_name} ${r.uploader_name} ${r.file_name}`.toLowerCase();
+      return fallbackTerms.some(term => haystack.includes(term.toLowerCase()));
+    }).slice(0, 3);
+
+    const lostList = await sql`SELECT * FROM lost_items WHERE item_name ILIKE ${'%' + searchToken + '%'} LIMIT 3`;
+    const foundList = await sql`SELECT * FROM found_items WHERE item_name ILIKE ${'%' + searchToken + '%'} LIMIT 3`;
+
+    if (resList.length > 0 || lostList.length > 0 || foundList.length > 0) {
+      reply = `🤖 Here is what I found for **"${searchToken.toUpperCase()}"**:`;
+
+      resList.forEach((r: any) => {
+        cards.push({
+          type: 'resource',
+          id: r.id,
+          title: r.subject_name,
+          subtitle: `Course: ${r.course_name} • By ${r.uploader_name}`,
+          link: r.file_url,
+          badge: 'Resource',
+          badgeColor: '#fbbf24',
+        });
+      });
+
+      lostList.forEach((item: any) => {
+        cards.push({
+          type: 'lost',
+          id: item.id,
+          title: `Lost: ${item.item_name}`,
+          subtitle: `Contact: ${item.phone}`,
+          link: '/dashboard/lost-found',
+          badge: 'Lost Item',
+          badgeColor: '#ff6b6b',
+        });
+      });
+
+      foundList.forEach((item: any) => {
+        cards.push({
+          type: 'found',
+          id: item.id,
+          title: `Found: ${item.item_name}`,
+          subtitle: `Finder: ${item.finder_name}`,
+          link: '/dashboard/lost-found',
+          badge: 'Found Item',
+          badgeColor: '#00f5d4',
+        });
+      });
+
+      return NextResponse.json({ reply, cards });
+    }
+
+    reply = `I couldn't find exact matches for **"${message}"**. Try asking:\n\n` +
+      `• **Resources**: *"DSA"*, *"Operating System notes"*, or *"DBMS PYQs"*\n` +
       `• **Lost & Found**: *"Any found keys in library?"*\n` +
       `• **Complaints**: *"Check status of my repair requests"*\n` +
       (isAdmin ? `• **Admin**: *"System stats overview"*` : '');
