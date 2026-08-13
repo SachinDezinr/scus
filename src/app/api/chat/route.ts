@@ -33,42 +33,55 @@ export async function POST(req: NextRequest) {
     let reply = '';
     const cards: ActionableCard[] = [];
 
-    // ── ADMIN QUERIES ──
-    if (
-      isAdmin &&
-      (query.includes('stat') ||
-        query.includes('overview') ||
-        query.includes('summary') ||
-        query.includes('admin') ||
-        query.includes('how many'))
-    ) {
-      const [complaintStats] = await sql`
-        SELECT 
-          COUNT(*)::int as total,
-          COUNT(CASE WHEN status = 'pending' THEN 1 END)::int as pending,
-          COUNT(CASE WHEN status = 'in progress' THEN 1 END)::int as in_progress,
-          COUNT(CASE WHEN status = 'resolved' THEN 1 END)::int as resolved
-        FROM complaints
-      `;
+    // ── ADMIN / SYSTEM OVERVIEW INTENT ──
+    const isAdminIntent = 
+      query.includes('stat') ||
+      query.includes('overview') ||
+      query.includes('summary') ||
+      query.includes('admin') ||
+      query.includes('analytics') ||
+      query.includes('total users') ||
+      query.includes('how many users') ||
+      query.includes('how many complaints');
 
-      const [lostCount] = await sql`SELECT COUNT(*)::int as total FROM lost_items`;
-      const [foundCount] = await sql`SELECT COUNT(*)::int as total FROM found_items`;
-      const [resCount] = await sql`SELECT COUNT(*)::int as total FROM resources`;
-      const [userCount] = await sql`SELECT COUNT(*)::int as total FROM users`;
+    if (isAdminIntent) {
+      if (isAdmin) {
+        const [complaintStats] = await sql`
+          SELECT 
+            COUNT(*)::int as total,
+            COUNT(CASE WHEN status = 'pending' THEN 1 END)::int as pending,
+            COUNT(CASE WHEN status = 'in progress' THEN 1 END)::int as in_progress,
+            COUNT(CASE WHEN status = 'resolved' THEN 1 END)::int as resolved
+          FROM complaints
+        `;
 
-      reply = `👋 **Hello Admin ${user.name}!** Here is the current system summary:\n\n` +
-        `• **Users Registered:** ${userCount.total}\n` +
-        `• **Complaints:** ${complaintStats.total} total (${complaintStats.pending} Pending, ${complaintStats.in_progress} In Progress, ${complaintStats.resolved} Resolved)\n` +
-        `• **Lost & Found:** ${lostCount.total} Lost items reported, ${foundCount.total} Found items reported\n` +
-        `• **Resource Library:** ${resCount.total} study materials available`;
+        const [lostCount] = await sql`SELECT COUNT(*)::int as total FROM lost_items`;
+        const [foundCount] = await sql`SELECT COUNT(*)::int as total FROM found_items`;
+        const [resCount] = await sql`SELECT COUNT(*)::int as total FROM resources`;
+        const [userCount] = await sql`SELECT COUNT(*)::int as total FROM users`;
 
-      cards.push(
-        { type: 'stat', title: 'Pending Complaints', subtitle: `${complaintStats.pending} requiring review`, badge: 'Pending', badgeColor: '#fbbf24', link: '/dashboard/admin' },
-        { type: 'stat', title: 'Total Resources', subtitle: `${resCount.total} PDFs uploaded`, badge: 'Resources', badgeColor: '#00f5d4', link: '/dashboard/resources' },
-        { type: 'stat', title: 'Lost & Found Items', subtitle: `${lostCount.total} lost / ${foundCount.total} found`, badge: 'Active', badgeColor: '#ff6b6b', link: '/dashboard/lost-found' }
-      );
+        reply = `👋 **Hello Admin ${user.name}!** Here is the current system overview:\n\n` +
+          `• **Registered Users:** ${userCount.total}\n` +
+          `• **Complaints:** ${complaintStats.total} total (${complaintStats.pending} Pending, ${complaintStats.in_progress} In Progress, ${complaintStats.resolved} Resolved)\n` +
+          `• **Lost & Found:** ${lostCount.total} Lost items reported, ${foundCount.total} Found items reported\n` +
+          `• **Resource Library:** ${resCount.total} study materials uploaded`;
 
-      return NextResponse.json({ reply, cards });
+        cards.push(
+          { type: 'stat', title: 'Pending Complaints', subtitle: `${complaintStats.pending} pending review`, badge: 'Pending', badgeColor: '#fbbf24', link: '/dashboard/admin' },
+          { type: 'stat', title: 'Total Resources', subtitle: `${resCount.total} PDFs uploaded`, badge: 'Resources', badgeColor: '#00f5d4', link: '/dashboard/resources' },
+          { type: 'stat', title: 'Lost & Found Items', subtitle: `${lostCount.total} lost / ${foundCount.total} found`, badge: 'Active', badgeColor: '#ff6b6b', link: '/dashboard/lost-found' }
+        );
+
+        return NextResponse.json({ reply, cards });
+      } else {
+        reply = `🔒 **Access Restricted:** System-wide overview metrics and administrative control panels are reserved exclusively for **Administrator** accounts.\n\nAs a student, you can ask me to:\n` +
+          `• Search study notes & PYQs (e.g. *"Find Data Structures notes"*)\n` +
+          `• Look up lost & found items (e.g. *"Is there any lost blue wallet?"*)\n` +
+          `• Check the status of your own infrastructure complaints (e.g. *"Show my complaints"*)\n` +
+          `• Report new issues or share study materials!`;
+
+        return NextResponse.json({ reply, cards: [] });
+      }
     }
 
     // ── RESOURCES INTENT ──
@@ -134,9 +147,7 @@ export async function POST(req: NextRequest) {
       query.includes('umbrella') ||
       query.includes('id')
     ) {
-      const isLostSearch = query.includes('lost') || !query.includes('found');
       const cleanKeywords = query.replace(/(find|search|show|get|lost|found|item|items|i|a|the|me|is|there|any|where|my)/g, '').trim();
-
       const searchPattern = '%' + (cleanKeywords || '') + '%';
 
       const matchedLost = await sql`
@@ -200,45 +211,65 @@ export async function POST(req: NextRequest) {
       query.includes('bench') ||
       query.includes('status')
     ) {
-      const userComplaints = await sql`
-        SELECT * FROM complaints 
-        WHERE user_id = ${user.userId} 
-        ORDER BY created_at DESC LIMIT 5
-      `;
-
-      if (userComplaints.length > 0) {
-        reply = `🛠️ You have **${userComplaints.length} complaint(s)** registered under your account:`;
-        userComplaints.forEach((c: any) => {
+      if (isAdmin) {
+        const allComplaints = await sql`SELECT * FROM complaints ORDER BY created_at DESC LIMIT 5`;
+        reply = `🛠️ **Admin Complaint Overview:** Showing recent complaints system-wide:`;
+        allComplaints.forEach((c: any) => {
           cards.push({
             type: 'complaint',
             id: c.id,
             title: c.item_name,
             subtitle: `${c.class_name} • ${c.department}`,
-            meta: `Priority: ${c.priority?.toUpperCase() || 'MEDIUM'}`,
-            link: '/dashboard/complaints',
+            meta: `Status: ${c.status.toUpperCase()} • Priority: ${c.priority?.toUpperCase() || 'MEDIUM'}`,
+            link: '/dashboard/admin',
             badge: c.status.toUpperCase(),
             badgeColor: c.status === 'resolved' ? '#00f5d4' : c.status === 'in progress' ? '#3b82f6' : '#fbbf24',
           });
         });
       } else {
-        reply = `ℹ️ You currently have no active complaints filed. If something on campus needs repair (fans, projectors, lights), you can submit a report under Infrastructure Complaints!`;
+        const userComplaints = await sql`
+          SELECT * FROM complaints 
+          WHERE user_id = ${user.userId} 
+          ORDER BY created_at DESC LIMIT 5
+        `;
+
+        if (userComplaints.length > 0) {
+          reply = `🛠️ You have **${userComplaints.length} complaint(s)** registered under your account:`;
+          userComplaints.forEach((c: any) => {
+            cards.push({
+              type: 'complaint',
+              id: c.id,
+              title: c.item_name,
+              subtitle: `${c.class_name} • ${c.department}`,
+              meta: `Priority: ${c.priority?.toUpperCase() || 'MEDIUM'}`,
+              link: '/dashboard/complaints',
+              badge: c.status.toUpperCase(),
+              badgeColor: c.status === 'resolved' ? '#00f5d4' : c.status === 'in progress' ? '#3b82f6' : '#fbbf24',
+            });
+          });
+        } else {
+          reply = `ℹ️ You currently have no active complaints filed. If something on campus needs repair (fans, projectors, lights), you can submit a report under Infrastructure Complaints!`;
+        }
       }
 
       return NextResponse.json({ reply, cards });
     }
 
-    // ── GENERAL PLATFORM / HELP INTENT ──
+    // ── GREETING / HELP ──
     if (query.includes('hello') || query.includes('hi') || query.includes('hey') || query.includes('help')) {
-      reply = `Hello **${user.name}**! 👋 I am your Smart Student Utility Assistant. Here is what I can do for you:\n\n` +
-        `1. **Search Notes & PYQs**: Ask *"Find Data Structures notes"* or *"Show B.Tech CSE resources"*\n` +
-        `2. **Check Lost & Found**: Ask *"Is there a lost blue wallet?"* or *"Show found phones"*\n` +
-        `3. **Track Complaints**: Ask *"What is the status of my complaints?"*\n` +
-        (isAdmin ? `4. **Admin Dashboard Stats**: Ask *"Show overview stats"* or *"How many pending complaints?"*` : '');
+      reply = `Hello **${user.name}**! 👋 I am your Smart Campus AI Assistant.\n\n` +
+        `Here is what you can ask me:\n` +
+        `1. **Search Notes & PYQs**: *"Find Data Structures notes"*\n` +
+        `2. **Lost & Found**: *"Is there a lost blue wallet?"*\n` +
+        `3. **Complaints**: *"What is the status of my complaints?"*\n` +
+        (isAdmin 
+          ? `4. **Admin Dashboard Stats**: *"Show system overview stats"*` 
+          : `4. **Role note**: Administrative stats are restricted to Admin accounts.`);
 
       return NextResponse.json({ reply, cards: [] });
     }
 
-    // ── GENERAL FALLBACK WITH DB SEARCH ──
+    // ── FALLBACK SEARCH ──
     const searchKeyword = query.split(' ').filter(w => w.length > 3)[0] || '';
     if (searchKeyword) {
       const resList = await sql`SELECT * FROM resources WHERE subject_name ILIKE ${'%' + searchKeyword + '%'} LIMIT 3`;
@@ -246,7 +277,7 @@ export async function POST(req: NextRequest) {
       const foundList = await sql`SELECT * FROM found_items WHERE item_name ILIKE ${'%' + searchKeyword + '%'} LIMIT 3`;
 
       if (resList.length > 0 || lostList.length > 0 || foundList.length > 0) {
-        reply = `🤖 Here is what I found in the system for **"${searchKeyword}"**:`;
+        reply = `🤖 Here is what I found in the public system for **"${searchKeyword}"**:`;
 
         resList.forEach((r: any) => {
           cards.push({
@@ -288,11 +319,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    reply = `I didn't quite catch that. You can ask me about:\n\n` +
-      `• **Resources**: *"Search Operating System PYQs"*\n` +
+    reply = `I didn't quite catch that. Try asking:\n\n` +
+      `• **Resources**: *"Search Operating System notes"*\n` +
       `• **Lost & Found**: *"Any found keys in library?"*\n` +
       `• **Complaints**: *"Check status of my repair requests"*\n` +
-      (isAdmin ? `• **Admin**: *"System stats summary"*` : '');
+      (isAdmin ? `• **Admin**: *"System stats overview"*` : '');
 
     return NextResponse.json({ reply, cards: [] });
   } catch (err) {
