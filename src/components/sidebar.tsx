@@ -7,12 +7,13 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home, Search, BookOpen, Building2, Mail, Info,
-  LogOut, Menu, X, Shield, ChevronRight
+  LogOut, Menu, X, Shield, ChevronRight, Bot
 } from 'lucide-react';
 import Logo from '@/components/logo';
 
 const navItems = [
   { href: '/dashboard', label: 'Home', icon: Home, color: '#a78bfa', adminOnly: false },
+  { href: '/dashboard/ai-assistant', label: 'AI Assistant', icon: Bot, color: '#00f5d4', adminOnly: false },
   { href: '/dashboard/lost-found', label: 'Lost & Found', icon: Search, color: '#00f5d4', adminOnly: false },
   { href: '/dashboard/resources', label: 'Resource Exchange', icon: BookOpen, color: '#fbbf24', adminOnly: false },
   { href: '/dashboard/complaints', label: 'Complaints', icon: Building2, color: '#ff6b6b', adminOnly: false },
@@ -129,7 +130,7 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* ─── Mobile top bar ─── */}
+      {/* Mobile top bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-sidebar border-b border-border flex items-center justify-between px-4">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-secondary/80 border border-primary/20 flex items-center justify-center">
@@ -146,7 +147,7 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* ─── Mobile drawer (225px width) ─── */}
+      {/* Mobile drawer */}
       <AnimatePresence>
         {mobileOpen && (
           <>
@@ -170,7 +171,7 @@ export default function Sidebar() {
         )}
       </AnimatePresence>
 
-      {/* ─── Desktop sidebar — unchanged 260px ─── */}
+      {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col fixed top-0 left-0 bottom-0 w-[260px] z-30 bg-sidebar border-r border-border">
         <NavContent isMobile={false} />
       </aside>

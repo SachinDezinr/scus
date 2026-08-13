@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Sidebar from '@/components/sidebar';
+import AIChatWidget from '@/components/ai-chat-widget';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -28,13 +29,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen mesh-bg flex">
       <Sidebar />
-      {/* Desktop: sidebar is 260px fixed, so offset main content */}
-      {/* Mobile: sidebar is a drawer overlay, main takes full width with top bar */}
       <main className="flex-1 lg:ml-[260px] pt-14 lg:pt-0 min-h-screen w-0">
         <div className="p-4 md:p-6 lg:p-8">
           {children}
         </div>
       </main>
+      <AIChatWidget />
     </div>
   );
 }
