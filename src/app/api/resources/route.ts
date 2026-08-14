@@ -1,36 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql, ensureTablesExist } from '@/lib/db';
 import { getTokenFromRequest } from '@/lib/auth';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { getClientIp, sanitizeText, validateUploadedFile } from '@/lib/security';
 
 export async function POST(req: NextRequest) {
   try {
-    await ensureTablesExist();
-
     const user = getTokenFromRequest(req);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    const ip = getClientIp(req);
+    const rateCheck = checkRateLimit(`resource_create:${user.userId}:${ip}`, 10, 60 * 1000);
+    if (!rateCheck.success && rateCheck.response) return rateCheck.response;
+
+    await ensureTablesExist();
+
     const formData = await req.formData();
-    const uploader_name = formData.get('uploader_name') as string;
-    const course_name = formData.get('course_name') as string;
-    const subject_name = formData.get('subject_name') as string;
-    const tips = formData.get('tips') as string | null;
+    const uploader_name = sanitizeText(formData.get('uploader_name') as string);
+    const course_name = sanitizeText(formData.get('course_name') as string);
+    const subject_name = sanitizeText(formData.get('subject_name') as string);
+    const tips = sanitizeText(formData.get('tips') as string | null);
     const file = formData.get('file') as File | null;
 
     if (!uploader_name || !course_name || !subject_name || !file) {
       return NextResponse.json({ error: 'Required fields missing' }, { status: 400 });
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File size must be under 5MB' }, { status: 400 });
+    // Validate uploaded file strictly: PDF format only, max 5MB
+    const fileCheck = validateUploadedFile(file, {
+      maxSizeMB: 5,
+      allowedMimeTypes: ['application/pdf'],
+    });
+
+    if (!fileCheck.valid) {
+      return NextResponse.json({ error: fileCheck.error }, { status: 400 });
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const mime = file.type || 'application/pdf';
+    const mime = 'application/pdf';
     const file_url = `data:${mime};base64,${buffer.toString('base64')}`;
+    const cleanFileName = sanitizeText(file.name);
 
     const [resource] = await sql`
       INSERT INTO resources (uploader_name, course_name, subject_name, file_url, file_name, tips, user_id)
-      VALUES (${uploader_name}, ${course_name}, ${subject_name}, ${file_url}, ${file.name}, ${tips}, ${user.userId})
+      VALUES (${uploader_name}, ${course_name}, ${subject_name}, ${file_url}, ${cleanFileName}, ${tips}, ${user.userId})
       RETURNING *
     `;
 
@@ -43,14 +56,14 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    await ensureTablesExist();
-
     const user = getTokenFromRequest(req);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    await ensureTablesExist();
+
     const { searchParams } = new URL(req.url);
-    const course = searchParams.get('course');
-    const subject = searchParams.get('subject');
+    const course = sanitizeText(searchParams.get('course'));
+    const subject = sanitizeText(searchParams.get('subject'));
 
     let resources;
     if (course && subject) {
@@ -84,10 +97,10 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    await ensureTablesExist();
-
     const user = getTokenFromRequest(req);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    await ensureTablesExist();
 
     const { id, uploader_name, course_name, subject_name, tips } = await req.json();
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
@@ -100,10 +113,10 @@ export async function PATCH(req: NextRequest) {
 
     const [updated] = await sql`
       UPDATE resources SET
-        uploader_name = COALESCE(${uploader_name ?? null}, uploader_name),
-        course_name = COALESCE(${course_name ?? null}, course_name),
-        subject_name = COALESCE(${subject_name ?? null}, subject_name),
-        tips = COALESCE(${tips ?? null}, tips)
+        uploader_name = COALESCE(${uploader_name ? sanitizeText(uploader_name) : null}, uploader_name),
+        course_name = COALESCE(${course_name ? sanitizeText(course_name) : null}, course_name),
+        subject_name = COALESCE(${subject_name ? sanitizeText(subject_name) : null}, subject_name),
+        tips = COALESCE(${tips ? sanitizeText(tips) : null}, tips)
       WHERE id = ${id}
       RETURNING *
     `;
@@ -117,10 +130,10 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    await ensureTablesExist();
-
     const user = getTokenFromRequest(req);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    await ensureTablesExist();
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');

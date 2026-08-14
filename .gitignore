@@ -16,13 +16,17 @@ yarn-debug.log*
 yarn-error.log*
 bun.lock
 
-# local env files
+# secrets and environment variables
 .env*.local
+.env*
 .env
+*.pem
+*.key
+*.crt
 
-# vercel
+# vercel & build caches
 .vercel
 
-# typescript
+# typescript & dyad
 *.tsbuildinfo
 .dyad/

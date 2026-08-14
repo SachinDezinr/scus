@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql, ensureTablesExist } from '@/lib/db';
 import { getTokenFromRequest } from '@/lib/auth';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { getClientIp, sanitizeText } from '@/lib/security';
 
 interface ActionableCard {
   type: 'resource' | 'lost' | 'found' | 'complaint' | 'stat';
@@ -37,19 +39,25 @@ const SUBJECT_ACRONYMS: Record<string, string[]> = {
 
 export async function POST(req: NextRequest) {
   try {
-    await ensureTablesExist();
-
     const user = getTokenFromRequest(req);
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const ip = getClientIp(req);
+    // Rate limit: Max 20 chat messages per minute
+    const rateCheck = checkRateLimit(`chat:${user.userId}:${ip}`, 20, 60 * 1000);
+    if (!rateCheck.success && rateCheck.response) return rateCheck.response;
+
+    await ensureTablesExist();
 
     const { message } = await req.json();
     if (!message || typeof message !== 'string') {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    const query = message.trim().toLowerCase();
+    const rawMessage = sanitizeText(message.trim());
+    const query = rawMessage.toLowerCase();
     const isAdmin = user.role === 'admin';
 
     let reply = '';
@@ -413,7 +421,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ reply, cards });
     }
 
-    reply = `I couldn't find exact matches for "${message}". Try asking:\n\n` +
+    reply = `I couldn't find exact matches for "${rawMessage}". Try asking:\n\n` +
       `• Resources: "Find study notes", "DSA", or "DBMS"\n` +
       `• Lost & Found: "Lost & Found Registry"\n` +
       `• Complaints: "Check status of my repair requests"\n` +
