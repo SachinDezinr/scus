@@ -131,10 +131,10 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile top bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-sidebar border-b border-border flex items-center justify-between px-4">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 bg-sidebar border-b border-border flex items-center justify-between px-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-secondary/80 border border-primary/20 flex items-center justify-center">
-            <Logo size={20} />
+          <div className="w-8.5 h-8.5 rounded-lg bg-secondary/80 border border-primary/20 flex items-center justify-center">
+            <Logo size={22} />
           </div>
           <span className="text-sm font-bold tracking-wider">SSUS</span>
         </div>
@@ -143,7 +143,7 @@ export default function Sidebar() {
           className="p-2 rounded-lg hover:bg-white/8 transition-colors"
           aria-label="Toggle menu"
         >
-          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
