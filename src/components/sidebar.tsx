@@ -36,30 +36,30 @@ export default function Sidebar() {
     <div className="flex flex-col h-full bg-[#0e0f14] text-foreground select-none">
       {/* Brand Header */}
       <div className="h-16 px-5 flex items-center gap-3 border-b border-[#1c1e27] shrink-0">
-        <Logo size={32} />
+        <Logo size={30} />
         <div className="min-w-0">
-          <div className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
+          <div className="text-xs font-bold tracking-tight text-white flex items-center gap-1.5">
             CAMPUS UTILITY
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">v1.2</span>
+            <span className="text-[9px] font-mono px-1 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">v1.2</span>
           </div>
-          <p className="text-xs text-muted-foreground truncate">Student Operating Hub</p>
+          <p className="text-[11px] text-muted-foreground truncate">Student Operating Hub</p>
         </div>
       </div>
 
       {/* User Context card */}
-      <div className="p-3.5">
-        <div className="p-3 rounded-xl bg-[#14161f] border border-[#202330] flex items-center gap-3">
+      <div className="p-3">
+        <div className="p-3 rounded-lg bg-[#14161f] border border-[#202330] flex items-center gap-2.5">
           <div
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 bg-[#212536] text-white border border-[#2e3348]"
+            className="w-8 h-8 rounded-md flex items-center justify-center text-xs font-bold shrink-0 bg-[#212536] text-white border border-[#2e3348]"
           >
-            {user?.role === 'admin' ? <Shield size={16} className="text-amber" /> : user?.name?.charAt(0).toUpperCase()}
+            {user?.role === 'admin' ? <Shield size={14} className="text-amber" /> : user?.name?.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-white truncate leading-tight">{user?.name}</p>
-            <p className="text-[11px] text-muted-foreground font-mono truncate">{user?.email}</p>
+            <p className="text-[10px] text-muted-foreground font-mono truncate">{user?.email}</p>
           </div>
           {user?.role === 'admin' && (
-            <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">
+            <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">
               ADM
             </span>
           )}
@@ -67,8 +67,8 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation Links */}
-      <div className="px-3.5 py-1.5 flex-1 space-y-1.5 overflow-y-auto">
-        <div className="px-2.5 pb-1.5 text-[11px] font-mono uppercase tracking-wider text-muted-foreground/70">
+      <div className="px-3 py-1 flex-1 space-y-1 overflow-y-auto">
+        <div className="px-2 pb-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground/70">
           Main Navigation
         </div>
         {filteredItems.map(item => {
@@ -76,16 +76,16 @@ export default function Sidebar() {
           return (
             <Link key={item.href} href={item.href} onClick={onNav}>
               <div
-                className={`relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                className={`relative flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                   active
-                    ? 'bg-primary text-white shadow-sm font-semibold'
+                    ? 'bg-primary text-white shadow-sm'
                     : 'text-[#9ca3af] hover:text-white hover:bg-[#161822]'
                 }`}
               >
-                <item.icon size={18} className={active ? 'text-white' : 'text-[#858c9b]'} />
+                <item.icon size={16} className={active ? 'text-white' : 'text-[#6b7280]'} />
                 <span className="flex-1 truncate">{item.label}</span>
                 {item.adminOnly && (
-                  <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${active ? 'bg-black/20 text-white' : 'bg-[#232634] text-muted-foreground'}`}>
+                  <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded ${active ? 'bg-black/20 text-white' : 'bg-[#232634] text-muted-foreground'}`}>
                     ROOT
                   </span>
                 )}
@@ -96,12 +96,12 @@ export default function Sidebar() {
       </div>
 
       {/* Footer / Sign Out */}
-      <div className="p-3.5 border-t border-[#1c1e27] shrink-0">
+      <div className="p-3 border-t border-[#1c1e27] shrink-0">
         <button
           onClick={logout}
-          className="flex items-center gap-3 w-full px-3.5 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
         >
-          <LogOut size={17} />
+          <LogOut size={15} />
           <span>Sign Out</span>
         </button>
       </div>
@@ -113,7 +113,7 @@ export default function Sidebar() {
       {/* Mobile top navigation bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-[#0e0f14] border-b border-[#1c1e27] flex items-center justify-between px-4">
         <div className="flex items-center gap-2.5">
-          <Logo size={26} />
+          <Logo size={24} />
           <span className="text-xs font-bold tracking-tight text-white uppercase">Campus Utility</span>
         </div>
         <button
@@ -137,11 +137,11 @@ export default function Sidebar() {
               onClick={() => setMobileOpen(false)}
             />
             <motion.aside
-              initial={{ x: -280 }}
+              initial={{ x: -260 }}
               animate={{ x: 0 }}
-              exit={{ x: -280 }}
+              exit={{ x: -260 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="lg:hidden fixed left-0 top-0 bottom-0 w-[280px] z-50 bg-[#0e0f14] border-r border-[#1c1e27]"
+              className="lg:hidden fixed left-0 top-0 bottom-0 w-[260px] z-50 bg-[#0e0f14] border-r border-[#1c1e27]"
             >
               <NavContent onNav={() => setMobileOpen(false)} />
             </motion.aside>
