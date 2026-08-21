@@ -85,7 +85,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Metrics Row (Non-clickable informative stat counters) */}
+      {/* Metrics Row with subtle glow & elevation on hover */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {[
           { label: 'Active Complaints', value: stats.complaintsCount, sub: 'In pipeline' },
@@ -93,7 +93,10 @@ export default function DashboardPage() {
           { label: 'Found Items Logged', value: stats.foundCount, sub: 'In registry' },
           { label: 'Verified Resources', value: stats.resourcesCount, sub: 'PDF Notes & PYQs' },
         ].map((item, idx) => (
-          <div key={idx} className="glass-card p-4 rounded-xl select-none">
+          <div
+            key={idx}
+            className="glass-card glass-card-hover p-4 rounded-xl select-none transition-all duration-200"
+          >
             <span className="text-[11px] font-mono uppercase text-muted-foreground block">{item.label}</span>
             <p className="text-2xl font-bold text-white tracking-tight my-1">{item.value}</p>
             <span className="text-[11px] text-[#6b7280]">{item.sub}</span>
@@ -101,7 +104,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Primary Utility Modules Grid */}
+      {/* Primary Utility Modules Grid with subtle glow & elevation */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground font-mono">
@@ -111,7 +114,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Lost & Found */}
-          <div className="glass-card rounded-xl p-5 flex flex-col justify-between hover:border-[#383c50] transition-colors">
+          <div className="glass-card glass-card-hover rounded-xl p-5 flex flex-col justify-between transition-all duration-200">
             <div>
               <div className="w-9 h-9 rounded-lg bg-[#1b1e2a] border border-[#272b3c] flex items-center justify-center text-primary mb-4">
                 <Search size={18} />
@@ -129,7 +132,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Resources */}
-          <div className="glass-card rounded-xl p-5 flex flex-col justify-between hover:border-[#383c50] transition-colors">
+          <div className="glass-card glass-card-hover rounded-xl p-5 flex flex-col justify-between transition-all duration-200">
             <div>
               <div className="w-9 h-9 rounded-lg bg-[#1b1e2a] border border-[#272b3c] flex items-center justify-center text-amber mb-4">
                 <BookOpen size={18} />
@@ -147,7 +150,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Infrastructure Complaints */}
-          <div className="glass-card rounded-xl p-5 flex flex-col justify-between hover:border-[#383c50] transition-colors">
+          <div className="glass-card glass-card-hover rounded-xl p-5 flex flex-col justify-between transition-all duration-200">
             <div>
               <div className="w-9 h-9 rounded-lg bg-[#1b1e2a] border border-[#272b3c] flex items-center justify-center text-rose-400 mb-4">
                 <Building2 size={18} />
@@ -166,8 +169,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Workflow Guidance */}
-      <div className="p-5 rounded-xl bg-[#14161f] border border-[#202330]">
+      {/* Workflow Guidance Card */}
+      <div className="glass-card glass-card-hover p-5 rounded-xl transition-all duration-200">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h3 className="text-sm font-bold text-white mb-1">Need immediate assistance?</h3>

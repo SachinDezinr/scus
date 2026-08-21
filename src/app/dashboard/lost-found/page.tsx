@@ -147,7 +147,7 @@ export default function LostFoundPage() {
 
   const renderItemCard = (item: Item & { _type: 'lost' | 'found' }) => (
     <motion.div key={item.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-      className="glass-card glass-card-hover rounded-2xl overflow-hidden flex flex-col justify-between">
+      className="glass-card rounded-2xl overflow-hidden flex flex-col justify-between">
       {item.image_url && (
         <div className="h-36 sm:h-40 overflow-hidden shrink-0">
           <img src={item.image_url} alt={item.item_name} className="w-full h-full object-cover" />
