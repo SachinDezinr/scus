@@ -4,9 +4,9 @@ import { Mail, Linkedin, Instagram, ExternalLink } from 'lucide-react';
 
 const channels = [
   {
-    title: 'Electronic Mail',
+    title: 'E-Mail',
     value: 'sachinpanwarpay@gmail.com',
-    href: 'mailto:sachinpanwarpay@gmail.com',
+    href: 'mailto:sachinpanwar.dev@gmail.com',
     icon: Mail,
   },
   {
