@@ -117,7 +117,7 @@ export default function ResourcesPage() {
   const subjects = [...new Set(resources.map(r => r.subject_name))];
 
   return (
-    <div className="max-w-6xl mx-auto w-full space-y-5">
+    <div className="w-full space-y-5">
       {/* Confirm Delete Modal */}
       <AnimatePresence>
         {confirmDelete && (
@@ -221,7 +221,7 @@ export default function ResourcesPage() {
       {/* Upload Form */}
       {showUpload && (
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden">
-          <div className="glass-card rounded-2xl p-4 sm:p-6 max-w-2xl border-amber/30">
+          <div className="glass-card rounded-2xl p-4 sm:p-6 max-w-3xl border-amber/30">
             <h2 className="text-sm sm:text-base font-bold mb-4 flex items-center gap-2 text-white">
               <Upload size={16} className="text-amber" /> Upload Study Material
             </h2>
@@ -247,7 +247,7 @@ export default function ResourcesPage() {
           <Filter size={14} className="text-primary" />
           <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Search & Filters</span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {/* Course filter */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground z-10">
@@ -298,7 +298,7 @@ export default function ResourcesPage() {
         </div>
       </div>
 
-      {/* Resources Grid */}
+      {/* Resources Grid in Left/Right Multi-Column View */}
       {loading ? (
         <div className="flex justify-center py-16"><div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
       ) : resources.length === 0 ? (
@@ -307,7 +307,7 @@ export default function ResourcesPage() {
           <p className="text-xs sm:text-sm text-muted-foreground">No resources found. Be the first to upload!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
           {resources.map(res => (
             <motion.div key={res.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card glass-card-hover rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200">
               <div>

@@ -149,7 +149,7 @@ export default function LostFoundPage() {
     <motion.div key={item.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
       className="glass-card glass-card-hover rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-200">
       {item.image_url && (
-        <div className="h-36 sm:h-40 overflow-hidden shrink-0">
+        <div className="h-40 sm:h-44 overflow-hidden shrink-0">
           <img src={item.image_url} alt={item.item_name} className="w-full h-full object-cover" />
         </div>
       )}
@@ -193,7 +193,7 @@ export default function LostFoundPage() {
   );
 
   return (
-    <div className="max-w-6xl mx-auto w-full">
+    <div className="w-full">
       {/* Confirm Delete Modal */}
       <AnimatePresence>
         {confirmDelete && (
@@ -391,9 +391,9 @@ export default function LostFoundPage() {
               matches.length === 0 ? (
                 <div className="glass-card rounded-2xl p-8 sm:p-12 text-center"><Sparkles size={36} className="mx-auto text-muted-foreground mb-3" /><p className="text-xs sm:text-sm text-muted-foreground">No matched items yet.</p></div>
               ) : (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {matches.map(m => (
-                    <motion.div key={m.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card glass-card-hover rounded-2xl p-4 sm:p-5 transition-all duration-200">
+                    <motion.div key={m.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card glass-card-hover rounded-2xl p-4 sm:p-5 transition-all duration-200 flex flex-col justify-between">
                       <div className="flex items-center gap-2 mb-3">
                         <Sparkles size={15} className="text-neon" />
                         <span className="text-xs font-bold text-neon uppercase tracking-widest">Score: {m.match_score.toFixed(0)}%</span>
@@ -431,7 +431,7 @@ export default function LostFoundPage() {
                 <p className="text-xs sm:text-sm text-muted-foreground">{viewTab === 'mine' ? "You haven't reported any items." : 'No items found.'}</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                 {viewedItems.map(item => renderItemCard(item))}
               </div>
             )}

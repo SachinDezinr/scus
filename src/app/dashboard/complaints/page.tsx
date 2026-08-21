@@ -134,7 +134,7 @@ export default function ComplaintsPage() {
   const lbl = "block text-[11px] font-semibold text-muted-foreground mb-1 uppercase tracking-wider";
 
   return (
-    <div className="max-w-5xl mx-auto w-full">
+    <div className="w-full">
 
       {/* ── Confirm Delete Modal ── */}
       <AnimatePresence>
@@ -250,7 +250,7 @@ export default function ComplaintsPage() {
       <AnimatePresence>
         {showForm && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-6 overflow-hidden">
-            <div className="glass-card rounded-2xl p-4 md:p-6 max-w-2xl">
+            <div className="glass-card rounded-2xl p-4 md:p-6 max-w-3xl">
               <h2 className="text-sm md:text-base font-bold mb-4 flex items-center gap-2 text-white">
                 <AlertCircle size={16} className="text-coral" /> File New Complaint
               </h2>
@@ -288,7 +288,7 @@ export default function ComplaintsPage() {
         )}
       </AnimatePresence>
 
-      {/* ── List ── */}
+      {/* ── List in 2-Column Left-Right Grid on Big Screens ── */}
       {loading ? (
         <div className="flex justify-center py-16"><div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
       ) : displayed.length === 0 ? (
@@ -299,67 +299,69 @@ export default function ComplaintsPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-3.5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
           {displayed.map(c => {
             const st = STATUS[c.status as keyof typeof STATUS] || STATUS.pending;
             const prio = PRIORITY[c.priority as keyof typeof PRIORITY] || PRIORITY.medium;
             const expanded = expandedId === c.id;
             return (
               <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                className={`glass-card glass-card-hover rounded-2xl overflow-hidden transition-all duration-200 ${c.status === 'resolved' ? 'border-neon/20' : ''}`}>
-                <div className="flex flex-col md:flex-row">
+                className={`glass-card glass-card-hover rounded-2xl overflow-hidden transition-all duration-200 flex flex-col justify-between ${c.status === 'resolved' ? 'border-neon/20' : ''}`}>
+                <div className="flex flex-col sm:flex-row">
                   {c.photo_url && !expanded && (
-                    <div className="w-full md:w-44 h-40 md:h-auto overflow-hidden shrink-0">
+                    <div className="w-full sm:w-40 h-36 sm:h-auto overflow-hidden shrink-0">
                       <img src={c.photo_url} alt={c.item_name} className="w-full h-full object-cover" />
                     </div>
                   )}
-                  <div className="flex-1 p-4 md:p-5">
-                    <div className="flex items-start justify-between gap-2 flex-wrap mb-2.5">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-bold text-sm md:text-base text-white truncate">{c.item_name}</h3>
-                          <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1"
-                            style={{ background: st.bg, color: st.color }}>
-                            <st.icon size={10} /> {c.status}
-                          </span>
-                          <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1"
-                            style={{ background: prio.bg, color: prio.color }}>
-                            <ShieldAlert size={10} /> {prio.label}
-                          </span>
-                          {viewTab === 'all' && isOwner(c) && (
-                            <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary">Yours</span>
+                  <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-start justify-between gap-2 flex-wrap mb-2.5">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-bold text-sm md:text-base text-white truncate">{c.item_name}</h3>
+                            <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0"
+                              style={{ background: st.bg, color: st.color }}>
+                              <st.icon size={10} /> {c.status}
+                            </span>
+                            <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0"
+                              style={{ background: prio.bg, color: prio.color }}>
+                              <ShieldAlert size={10} /> {prio.label}
+                            </span>
+                            {viewTab === 'all' && isOwner(c) && (
+                              <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary shrink-0">Yours</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button onClick={() => setExpandedId(expanded ? null : c.id)}
+                            title={expanded ? 'Collapse' : 'View details'}
+                            className="p-1.5 rounded-lg glass-card text-muted-foreground hover:text-primary transition-colors">
+                            {expanded ? <ChevronUp size={14} /> : <Eye size={14} />}
+                          </button>
+                          {isOwner(c) && (
+                            <>
+                              <button onClick={() => setEditComplaint(c)}
+                                className="p-1.5 rounded-lg glass-card text-muted-foreground hover:text-primary transition-colors">
+                                <Pencil size={14} />
+                              </button>
+                              <button onClick={() => setConfirmDelete({ id: c.id, name: c.item_name })}
+                                className="p-1.5 rounded-lg glass-card text-muted-foreground hover:text-coral transition-colors">
+                                <Trash2 size={14} />
+                              </button>
+                            </>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button onClick={() => setExpandedId(expanded ? null : c.id)}
-                          title={expanded ? 'Collapse' : 'View details'}
-                          className="p-1.5 rounded-lg glass-card text-muted-foreground hover:text-primary transition-colors">
-                          {expanded ? <ChevronUp size={14} /> : <Eye size={14} />}
-                        </button>
-                        {isOwner(c) && (
-                          <>
-                            <button onClick={() => setEditComplaint(c)}
-                              className="p-1.5 rounded-lg glass-card text-muted-foreground hover:text-primary transition-colors">
-                              <Pencil size={14} />
-                            </button>
-                            <button onClick={() => setConfirmDelete({ id: c.id, name: c.item_name })}
-                              className="p-1.5 rounded-lg glass-card text-muted-foreground hover:text-coral transition-colors">
-                              <Trash2 size={14} />
-                            </button>
-                          </>
-                        )}
+
+                      <div className="space-y-1 text-xs md:text-sm text-muted-foreground mb-3">
+                        <div className="flex items-center gap-2"><MapPin size={13} className="text-primary shrink-0" /><span className="truncate">{c.class_name} · {c.department} · {c.floor}</span></div>
+                        <div className="flex items-start gap-2"><FileText size={13} className="text-primary shrink-0 mt-0.5" /><span className="line-clamp-2">{c.description}</span></div>
+                        <div className="flex items-center gap-2"><Sparkles size={13} className="text-primary shrink-0" /><span className="text-[11px]">{new Date(c.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span></div>
                       </div>
                     </div>
 
-                    <div className="space-y-1 text-xs md:text-sm text-muted-foreground mb-3">
-                      <div className="flex items-center gap-2"><MapPin size={13} className="text-primary shrink-0" /><span className="truncate">{c.class_name} · {c.department} · {c.floor}</span></div>
-                      <div className="flex items-start gap-2"><FileText size={13} className="text-primary shrink-0 mt-0.5" /><span className="line-clamp-2">{c.description}</span></div>
-                      <div className="flex items-center gap-2"><Sparkles size={13} className="text-primary shrink-0" /><span className="text-[11px]">{new Date(c.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></div>
-                    </div>
-
                     {isAdmin && (
-                      <div className="flex items-center gap-1.5 pt-3 border-t border-border flex-wrap">
+                      <div className="flex items-center gap-1.5 pt-3 border-t border-border flex-wrap mt-auto">
                         <span className="text-[11px] text-muted-foreground">Update:</span>
                         <button onClick={() => updateStatus(c.id, 'pending')} disabled={c.status === 'pending'}
                           className="text-[9px] md:text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
@@ -390,31 +392,29 @@ export default function ComplaintsPage() {
                         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-1.5">
                           <Eye size={11} /> Full Details
                         </p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2.5">
-                            <div className="grid grid-cols-2 gap-2.5">
-                              {[
-                                { label: 'Equipment', value: c.item_name },
-                                { label: 'Priority', value: prio.label },
-                                { label: 'Class / Room', value: c.class_name },
-                                { label: 'Department', value: c.department },
-                              ].map(f => (
-                                <div key={f.label} className="rounded-xl p-2.5 bg-secondary/40">
-                                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">{f.label}</p>
-                                  <p className="text-xs md:text-sm font-semibold truncate">{f.value}</p>
-                                </div>
-                              ))}
-                            </div>
-                            <div className="rounded-xl p-2.5 bg-secondary/40">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Description</p>
-                              <p className="text-xs md:text-sm leading-relaxed">{c.description}</p>
-                            </div>
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-2.5">
+                            {[
+                              { label: 'Equipment', value: c.item_name },
+                              { label: 'Priority', value: prio.label },
+                              { label: 'Class / Room', value: c.class_name },
+                              { label: 'Department', value: c.department },
+                            ].map(f => (
+                              <div key={f.label} className="rounded-xl p-2.5 bg-secondary/40">
+                                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">{f.label}</p>
+                                <p className="text-xs md:text-sm font-semibold truncate">{f.value}</p>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="rounded-xl p-2.5 bg-secondary/40">
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Description</p>
+                            <p className="text-xs md:text-sm leading-relaxed">{c.description}</p>
                           </div>
 
                           {c.photo_url && (
                             <div>
                               <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">Photo Evidence</p>
-                              <img src={c.photo_url} alt={c.item_name} className="w-full h-44 md:h-48 object-cover rounded-xl" />
+                              <img src={c.photo_url} alt={c.item_name} className="w-full h-44 object-cover rounded-xl" />
                             </div>
                           )}
                         </div>
