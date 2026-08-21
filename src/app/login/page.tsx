@@ -73,7 +73,7 @@ export default function LoginPage() {
           <div className="inline-flex p-2 rounded-xl bg-[#14161f] border border-[#202330] mb-3">
             <Logo size={36} />
           </div>
-          <h1 className="text-xl font-bold text-white tracking-tight">Smart Student Utility System</h1>
+          <h1 className="text-xl font-bold text-white tracking-tight">Campus Utility System</h1>
           <p className="text-xs text-muted-foreground mt-1">Campus Operations & Resource Management</p>
         </div>
 
