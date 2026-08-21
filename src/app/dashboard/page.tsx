@@ -2,11 +2,10 @@
 
 import { useAuth } from '@/lib/auth-context';
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
   Search, BookOpen, Building2, ArrowRight,
-  Shield, Bot, Plus, CheckCircle2, Clock
+  Shield, Bot
 } from 'lucide-react';
 
 interface StatsData {
@@ -86,21 +85,19 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Metrics Row */}
+      {/* Metrics Row (Non-clickable informative stat counters) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {[
-          { label: 'Active Complaints', value: stats.complaintsCount, sub: 'In pipeline', href: '/dashboard/complaints' },
-          { label: 'Lost Items Logged', value: stats.lostCount, sub: 'Awaiting match', href: '/dashboard/lost-found' },
-          { label: 'Found Items Logged', value: stats.foundCount, sub: 'In registry', href: '/dashboard/lost-found' },
-          { label: 'Verified Resources', value: stats.resourcesCount, sub: 'PDF Notes & PYQs', href: '/dashboard/resources' },
+          { label: 'Active Complaints', value: stats.complaintsCount, sub: 'In pipeline' },
+          { label: 'Lost Items Logged', value: stats.lostCount, sub: 'Awaiting match' },
+          { label: 'Found Items Logged', value: stats.foundCount, sub: 'In registry' },
+          { label: 'Verified Resources', value: stats.resourcesCount, sub: 'PDF Notes & PYQs' },
         ].map((item, idx) => (
-          <Link key={idx} href={item.href}>
-            <div className="glass-card glass-card-hover p-4 rounded-xl cursor-pointer">
-              <span className="text-[11px] font-mono uppercase text-muted-foreground block">{item.label}</span>
-              <p className="text-2xl font-bold text-white tracking-tight my-1">{item.value}</p>
-              <span className="text-[11px] text-[#6b7280]">{item.sub}</span>
-            </div>
-          </Link>
+          <div key={idx} className="glass-card p-4 rounded-xl select-none">
+            <span className="text-[11px] font-mono uppercase text-muted-foreground block">{item.label}</span>
+            <p className="text-2xl font-bold text-white tracking-tight my-1">{item.value}</p>
+            <span className="text-[11px] text-[#6b7280]">{item.sub}</span>
+          </div>
         ))}
       </div>
 
