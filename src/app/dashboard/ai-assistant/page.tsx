@@ -129,7 +129,7 @@ export default function AIAssistantPage() {
       ];
 
   return (
-    <div className="max-w-4xl mx-auto w-full h-[calc(100dvh-120px)] flex flex-col">
+    <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col h-[calc(100dvh-5.5rem)] md:h-[calc(100dvh-6.5rem)]">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-3 shrink-0">
         <div className="flex items-center gap-2 mb-0.5">
@@ -142,9 +142,9 @@ export default function AIAssistantPage() {
       </motion.div>
 
       {/* Main Chat Container */}
-      <div className="flex-1 glass-card rounded-2xl border border-border flex flex-col overflow-hidden">
+      <div className="flex-1 min-h-0 glass-card rounded-2xl border border-border flex flex-col overflow-hidden">
         {/* Messages Feed */}
-        <div className="flex-1 p-3 sm:p-5 overflow-y-auto space-y-3.5">
+        <div className="flex-1 min-h-0 p-3 sm:p-5 overflow-y-auto space-y-3.5">
           {messages.map(msg => (
             <motion.div
               key={msg.id}
@@ -235,26 +235,26 @@ export default function AIAssistantPage() {
           ))}
         </div>
 
-        {/* Input area */}
+        {/* Input area with expansion on hover/focus */}
         <div className="p-2.5 sm:p-3 border-t border-border bg-secondary/50 shrink-0">
           <form
             onSubmit={e => {
               e.preventDefault();
               handleSend();
             }}
-            className="flex items-center gap-2"
+            className="group flex items-center gap-2 transition-all duration-200"
           >
             <input
               type="text"
               value={input}
               onChange={e => setInput(e.target.value)}
               placeholder="Ask about resources, lost items, or complaints..."
-              className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-secondary border border-border text-xs sm:text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-colors"
+              className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-secondary border border-border text-xs sm:text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-all duration-200 group-hover:py-3 focus:py-3 group-hover:border-primary/60 group-hover:shadow-[0_0_15px_-3px_rgba(79,110,247,0.25)]"
             />
             <button
               type="submit"
               disabled={!input.trim() || loading}
-              className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-primary to-[#7b61ff] text-white font-semibold text-xs sm:text-sm flex items-center gap-1.5 disabled:opacity-50 hover:shadow-lg transition-shadow shrink-0"
+              className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-primary to-[#7b61ff] text-white font-semibold text-xs sm:text-sm flex items-center gap-1.5 disabled:opacity-50 hover:shadow-lg transition-all duration-200 group-hover:py-3 shrink-0"
             >
               <span>Send</span>
               <Send size={13} />

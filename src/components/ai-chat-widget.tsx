@@ -142,7 +142,7 @@ export default function AIChatWidget() {
             initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            className="fixed bottom-22 right-4 md:right-6 z-40 w-[92vw] max-w-[380px] h-[520px] bg-[#12131b] rounded-2xl flex flex-col shadow-2xl border border-[#232634] overflow-hidden"
+            className="fixed bottom-22 right-4 md:right-6 z-40 w-[92vw] max-w-[380px] h-[520px] max-h-[80vh] bg-[#12131b] rounded-2xl flex flex-col shadow-2xl border border-[#232634] overflow-hidden"
           >
             {/* Header */}
             <div className="px-4 py-3 border-b border-[#232634] bg-[#161822] flex items-center justify-between shrink-0">
@@ -164,7 +164,7 @@ export default function AIChatWidget() {
             </div>
 
             {/* Chat Messages */}
-            <div className="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs bg-[#0e0f14]">
+            <div className="flex-1 min-h-0 p-3.5 overflow-y-auto space-y-3 text-xs bg-[#0e0f14]">
               {messages.map(msg => (
                 <div
                   key={msg.id}
@@ -201,7 +201,7 @@ export default function AIChatWidget() {
                               href={card.link}
                               target={card.type === 'resource' ? '_blank' : '_self'}
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline mt-1.5"
+                              className="inline-flex items-center gap-1 text-primary font-semibold hover:underline mt-1.5"
                             >
                               {card.type === 'resource' ? <Download size={12} /> : <ExternalLink size={12} />}
                               <span>{card.type === 'resource' ? 'Download PDF' : 'View Details'}</span>
@@ -242,26 +242,26 @@ export default function AIChatWidget() {
               </div>
             )}
 
-            {/* Input Bar */}
+            {/* Input Bar with expansion on hover/focus */}
             <div className="p-3 border-t border-[#232634] bg-[#161822] shrink-0">
               <form
                 onSubmit={e => {
                   e.preventDefault();
                   handleSend();
                 }}
-                className="flex items-center gap-2"
+                className="group flex items-center gap-2 transition-all duration-200"
               >
                 <input
                   type="text"
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   placeholder="Ask assistant..."
-                  className="flex-1 px-3 py-2 rounded-lg bg-[#0e0f14] border border-[#262938] text-xs text-white placeholder:text-muted-foreground/50 focus:outline-none"
+                  className="flex-1 px-3 py-2 rounded-lg bg-[#0e0f14] border border-[#262938] text-xs text-white placeholder:text-muted-foreground/50 focus:outline-none transition-all duration-200 group-hover:py-2.5 focus:py-2.5 group-hover:border-primary/60 group-hover:shadow-[0_0_12px_-2px_rgba(79,110,247,0.3)]"
                 />
                 <button
                   type="submit"
                   disabled={!input.trim() || loading}
-                  className="p-2 rounded-lg bg-primary text-white disabled:opacity-50 transition-opacity"
+                  className="p-2 rounded-lg bg-primary text-white disabled:opacity-50 transition-all duration-200 group-hover:p-2.5"
                 >
                   <Send size={14} />
                 </button>
