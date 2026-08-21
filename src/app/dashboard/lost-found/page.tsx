@@ -127,7 +127,27 @@ export default function LostFoundPage() {
 
   const isOwner = (item: Item) => user?.id === item.user_id;
 
-  const inp = "w-full px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl bg-secondary/50 border border-border text-xs md:text-sm placeholder:text-muted-foreground/<dyad-write path="src/app/dashboard/lost-found/page.tsx" description="Complete and make Lost & Found page completely responsive across all mobile, tablet, and desktop screens">
+  const inp = "w-full px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl bg-secondary/50 border border-border text-xs md:text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-colors";
+  const lbl = "block text-[11px] font-semibold text-muted-foreground mb-1 uppercase tracking-wider";
+
+  const allItems = [
+    ...lostItems.map(i => ({ ...i, _type: 'lost' as const })),
+    ...foundItems.map(i => ({ ...i, _type: 'found' as const })),
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  const myItems = allItems.filter(i => i.user_id === user?.id);
+
+  const viewedItems = (() => {
+    if (viewTab === 'all') return allItems;
+    if (viewTab === 'mine') return myItems;
+    if (viewTab === 'lost') return lostItems.map(i => ({ ...i, _type: 'lost' as const }));
+    if (viewTab === 'found') return foundItems.map(i => ({ ...i, _type: 'found' as const }));
+    return [];
+  })();
+
+  const renderItemCard = (item: Item & { _type: 'lost' | 'found' }) => (
+    <motion.div key={item.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+      className="glass<dyad-write path="src/app/dashboard/lost-found/page.tsx" description="Complete and fix syntax and compilation issues in Lost & Found page">
 'use client';
 
 import { useAuth } from '@/lib/auth-context';
@@ -325,7 +345,7 @@ export default function LostFoundPage() {
   return (
     <div className="max-w-6xl mx-auto w-full">
 
-      {/* ── Confirm Delete Modal ── */}
+      {/* Confirm Delete Modal */}
       <AnimatePresence>
         {confirmDelete && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -347,7 +367,7 @@ export default function LostFoundPage() {
         )}
       </AnimatePresence>
 
-      {/* ── Edit Modal ── */}
+      {/* Edit Modal */}
       <AnimatePresence>
         {editItem && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -385,7 +405,7 @@ export default function LostFoundPage() {
         )}
       </AnimatePresence>
 
-      {/* ── Match Popup ── */}
+      {/* Match Popup */}
       <AnimatePresence>
         {matchResult && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
@@ -417,7 +437,7 @@ export default function LostFoundPage() {
         )}
       </AnimatePresence>
 
-      {/* ── Header ── */}
+      {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-5 sm:mb-6">
         <div className="flex items-center gap-2 mb-1">
           <Search size={16} className="text-neon" />
@@ -429,7 +449,7 @@ export default function LostFoundPage() {
         <p className="text-muted-foreground mt-0.5 text-xs sm:text-sm">Report lost or found items. Our smart system matches them automatically.</p>
       </motion.div>
 
-      {/* ── Main action tabs ── */}
+      {/* Main action tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 mb-4 sm:mb-5">
         {[
           { id: 'view' as MainTab, label: 'Browse Items', icon: Eye },
@@ -443,7 +463,7 @@ export default function LostFoundPage() {
         ))}
       </div>
 
-      {/* ── Content ── */}
+      {/* Content */}
       <AnimatePresence mode="wait">
 
         {/* Report Lost */}
