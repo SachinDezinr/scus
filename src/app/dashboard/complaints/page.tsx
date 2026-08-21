@@ -306,7 +306,7 @@ export default function ComplaintsPage() {
             const expanded = expandedId === c.id;
             return (
               <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                className={`glass-card rounded-2xl overflow-hidden ${c.status === 'resolved' ? 'border-neon/20' : ''}`}>
+                className={`glass-card glass-card-hover rounded-2xl overflow-hidden transition-all duration-200 ${c.status === 'resolved' ? 'border-neon/20' : ''}`}>
                 <div className="flex flex-col md:flex-row">
                   {c.photo_url && !expanded && (
                     <div className="w-full md:w-44 h-40 md:h-auto overflow-hidden shrink-0">
