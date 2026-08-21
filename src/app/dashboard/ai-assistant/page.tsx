@@ -116,27 +116,27 @@ export default function AIAssistantPage() {
 
   const suggestions = user?.role === 'admin'
     ? [
-        { label: 'Admin Overview', query: 'Show system overview stats', icon: Shield, color: '#ff6b6b' },
-        { label: 'Active Complaints', query: 'Check pending complaints', icon: Building2, color: '#fbbf24' },
-        { label: 'Lost & Found Registry', query: 'Lost & Found Registry', icon: Search, color: '#00f5d4' },
-        { label: 'Resource Materials', query: 'Find study notes', icon: BookOpen, color: '#a78bfa' },
+        { label: 'Admin Stats', query: 'Show system overview stats', icon: Shield, color: '#ff6b6b' },
+        { label: 'Complaints', query: 'Check pending complaints', icon: Building2, color: '#fbbf24' },
+        { label: 'Lost & Found', query: 'Lost & Found Registry', icon: Search, color: '#00f5d4' },
+        { label: 'Resources', query: 'Find study notes', icon: BookOpen, color: '#a78bfa' },
       ]
     : [
-        { label: 'Find Study Notes', query: 'Find study notes', icon: BookOpen, color: '#fbbf24' },
-        { label: 'Lost & Found Registry', query: 'Lost & Found Registry', icon: Search, color: '#00f5d4' },
-        { label: 'My Complaints Status', query: 'Check status of my complaints', icon: Building2, color: '#ff6b6b' },
-        { label: 'DSA Study Notes', query: 'DSA notes', icon: Lightbulb, color: '#a78bfa' },
+        { label: 'Notes & PYQs', query: 'Find study notes', icon: BookOpen, color: '#fbbf24' },
+        { label: 'Lost & Found', query: 'Lost & Found Registry', icon: Search, color: '#00f5d4' },
+        { label: 'My Complaints', query: 'Check status of my complaints', icon: Building2, color: '#ff6b6b' },
+        { label: 'DSA Notes', query: 'DSA notes', icon: Lightbulb, color: '#a78bfa' },
       ];
 
   return (
-    <div className="max-w-4xl mx-auto h-[calc(100vh-100px)] flex flex-col">
+    <div className="max-w-4xl mx-auto w-full h-[calc(100dvh-120px)] flex flex-col">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 shrink-0">
-        <div className="flex items-center gap-2 mb-1">
-          <Sparkles size={18} className="text-neon" />
-          <span className="text-xs font-semibold text-neon uppercase tracking-widest">Natural Language Assistant</span>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-3 shrink-0">
+        <div className="flex items-center gap-2 mb-0.5">
+          <Sparkles size={16} className="text-neon" />
+          <span className="text-[11px] font-semibold text-neon uppercase tracking-widest">Natural Language Assistant</span>
         </div>
-        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
           AI Campus <span className="gradient-text">Chatbot</span>
         </h1>
       </motion.div>
@@ -144,7 +144,7 @@ export default function AIAssistantPage() {
       {/* Main Chat Container */}
       <div className="flex-1 glass-card rounded-2xl border border-border flex flex-col overflow-hidden">
         {/* Messages Feed */}
-        <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-4">
+        <div className="flex-1 p-3 sm:p-5 overflow-y-auto space-y-3.5">
           {messages.map(msg => (
             <motion.div
               key={msg.id}
@@ -152,14 +152,14 @@ export default function AIAssistantPage() {
               animate={{ opacity: 1, y: 0 }}
               className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
             >
-              <div className="flex items-start gap-2.5 max-w-[85%]">
+              <div className="flex items-start gap-2 max-w-[92%] sm:max-w-[85%]">
                 {msg.sender === 'bot' && (
-                  <div className="w-8 h-8 rounded-xl bg-neon/15 border border-neon/30 flex items-center justify-center text-neon shrink-0 mt-1">
-                    <Bot size={18} />
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-neon/15 border border-neon/30 flex items-center justify-center text-neon shrink-0 mt-0.5">
+                    <Bot size={16} />
                   </div>
                 )}
                 <div
-                  className={`rounded-2xl p-4 leading-relaxed whitespace-pre-wrap text-sm ${
+                  className={`rounded-2xl p-3 sm:p-4 leading-relaxed whitespace-pre-wrap text-xs sm:text-sm ${
                     msg.sender === 'user'
                       ? 'bg-gradient-to-r from-primary to-[#7b61ff] text-white rounded-tr-xs'
                       : 'glass-card bg-secondary/80 border-border text-foreground rounded-tl-xs'
@@ -169,17 +169,17 @@ export default function AIAssistantPage() {
 
                   {/* Cards inside messages */}
                   {msg.cards && msg.cards.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 pt-2 border-t border-border/50">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3 pt-2 border-t border-border/50">
                       {msg.cards.map((card, idx) => (
                         <div
                           key={idx}
-                          className="glass-card rounded-xl p-3.5 border-border bg-secondary/40 text-xs"
+                          className="glass-card rounded-xl p-3 border-border bg-secondary/40 text-xs"
                         >
                           <div className="flex items-center justify-between gap-2 mb-1">
-                            <span className="font-bold truncate">{card.title}</span>
+                            <span className="font-bold truncate text-white">{card.title}</span>
                             {card.badge && (
                               <span
-                                className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full shrink-0"
+                                className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full shrink-0"
                                 style={{
                                   background: `${card.badgeColor || '#a78bfa'}20`,
                                   color: card.badgeColor || '#a78bfa',
@@ -189,14 +189,14 @@ export default function AIAssistantPage() {
                               </span>
                             )}
                           </div>
-                          {card.subtitle && <p className="text-muted-foreground text-[11px] mb-1">{card.subtitle}</p>}
-                          {card.meta && <p className="text-muted-foreground/80 font-mono text-[10px] mb-2">{card.meta}</p>}
+                          {card.subtitle && <p className="text-muted-foreground text-[11px] mb-1 truncate">{card.subtitle}</p>}
+                          {card.meta && <p className="text-muted-foreground/80 font-mono text-[10px] mb-1.5">{card.meta}</p>}
                           {card.link && (
                             <a
                               href={card.link}
                               target={card.type === 'resource' ? '_blank' : '_self'}
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-primary font-semibold hover:underline"
+                              className="inline-flex items-center gap-1 text-primary font-semibold hover:underline text-[11px]"
                             >
                               {card.type === 'resource' ? <Download size={12} /> : <ExternalLink size={12} />}
                               Open
@@ -208,13 +208,13 @@ export default function AIAssistantPage() {
                   )}
                 </div>
               </div>
-              <span className="text-[10px] text-muted-foreground/60 mt-1 px-1">{msg.timestamp}</span>
+              <span className="text-[9px] text-muted-foreground/60 mt-0.5 px-1">{msg.timestamp}</span>
             </motion.div>
           ))}
 
           {loading && (
             <div className="flex items-center gap-2 text-muted-foreground text-xs p-2">
-              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               <span>AI is thinking...</span>
             </div>
           )}
@@ -222,42 +222,42 @@ export default function AIAssistantPage() {
         </div>
 
         {/* Quick prompt suggestions */}
-        <div className="p-3 border-t border-border bg-secondary/30 grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="p-2 sm:p-3 border-t border-border bg-secondary/30 grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 shrink-0">
           {suggestions.map((item, idx) => (
             <button
               key={idx}
               onClick={() => handleSend(item.query)}
-              className="glass-card rounded-xl p-2.5 text-left text-xs hover:border-primary/40 transition-all flex items-center gap-2"
+              className="glass-card rounded-xl p-2 sm:p-2.5 text-left text-[11px] sm:text-xs hover:border-primary/40 transition-all flex items-center gap-1.5"
             >
-              <item.icon size={15} style={{ color: item.color }} className="shrink-0" />
-              <span className="truncate text-muted-foreground hover:text-foreground font-medium">{item.label}</span>
+              <item.icon size={13} style={{ color: item.color }} className="shrink-0" />
+              <span className="truncate text-muted-foreground hover:text-white font-medium">{item.label}</span>
             </button>
           ))}
         </div>
 
         {/* Input area */}
-        <div className="p-4 border-t border-border bg-secondary/50">
+        <div className="p-2.5 sm:p-3 border-t border-border bg-secondary/50 shrink-0">
           <form
             onSubmit={e => {
               e.preventDefault();
               handleSend();
             }}
-            className="flex items-center gap-3"
+            className="flex items-center gap-2"
           >
             <input
               type="text"
               value={input}
               onChange={e => setInput(e.target.value)}
-              placeholder="Ask about resources, lost & found, complaints, or stats..."
-              className="flex-1 px-4 py-3 rounded-xl bg-secondary border border-border text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-colors"
+              placeholder="Ask about resources, lost items, or complaints..."
+              className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-secondary border border-border text-xs sm:text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-colors"
             />
             <button
               type="submit"
               disabled={!input.trim() || loading}
-              className="px-5 py-3 rounded-xl bg-gradient-to-r from-primary to-[#7b61ff] text-white font-semibold text-sm flex items-center gap-2 disabled:opacity-50 hover:shadow-lg transition-shadow shrink-0"
+              className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-primary to-[#7b61ff] text-white font-semibold text-xs sm:text-sm flex items-center gap-1.5 disabled:opacity-50 hover:shadow-lg transition-shadow shrink-0"
             >
               <span>Send</span>
-              <Send size={15} />
+              <Send size={13} />
             </button>
           </form>
         </div>
