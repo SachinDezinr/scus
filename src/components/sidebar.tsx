@@ -48,7 +48,7 @@ export default function Sidebar() {
 
       {/* User Context card */}
       <div className="p-3">
-        <div className="p-3 rounded-lg bg-[#14161f] border border-[#202330] flex items-center gap-2.5">
+        <div className="p-3 rounded-lg bg-[#14161f] border border-[#202330] flex items-center gap-2.5 transition-all lg:hover:border-[#3b4056]">
           <div
             className="w-8 h-8 rounded-md flex items-center justify-center text-xs font-bold shrink-0 bg-[#212536] text-white border border-[#2e3348]"
           >
@@ -74,16 +74,19 @@ export default function Sidebar() {
         {filteredItems.map(item => {
           const active = isActive(item.href);
           return (
-            <Link key={item.href} href={item.href} onClick={onNav}>
+            <Link key={item.href} href={item.href} onClick={onNav} className="block">
               <div
-                className={`relative flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                className={`nav-item-link relative flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium ${
                   active
                     ? 'bg-primary text-white shadow-sm'
-                    : 'text-[#9ca3af] hover:text-white hover:bg-[#161822]'
+                    : 'text-[#9ca3af] hover:text-white hover:bg-[#161822] lg:hover:border lg:hover:border-[#2b2f44]'
                 }`}
               >
-                <item.icon size={16} className={active ? 'text-white' : 'text-[#6b7280]'} />
-                <span className="flex-1 truncate">{item.label}</span>
+                <item.icon
+                  size={16}
+                  className={`nav-icon transition-transform duration-200 ${active ? 'text-white' : 'text-[#6b7280]'}`}
+                />
+                <span className="nav-text flex-1 truncate transition-all duration-200">{item.label}</span>
                 {item.adminOnly && (
                   <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded ${active ? 'bg-black/20 text-white' : 'bg-[#232634] text-muted-foreground'}`}>
                     ROOT
@@ -99,7 +102,7 @@ export default function Sidebar() {
       <div className="p-3 border-t border-[#1c1e27] shrink-0">
         <button
           onClick={logout}
-          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-all lg:hover:translate-x-1"
         >
           <LogOut size={15} />
           <span>Sign Out</span>
