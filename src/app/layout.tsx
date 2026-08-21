@@ -8,7 +8,11 @@ export const metadata: Metadata = {
   title: "Smart Student Utility System",
   description: "A comprehensive utility system for college students",
   icons: {
-    icon: "/app-logo.svg",
+    icon: [
+      { url: "/app-logo.svg", type: "image/svg+xml" }
+    ],
+    shortcut: "/app-logo.svg",
+    apple: "/app-logo.svg",
   },
 };
 
