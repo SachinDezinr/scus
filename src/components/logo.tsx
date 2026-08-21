@@ -7,67 +7,38 @@ interface LogoProps {
   size?: number;
 }
 
-export default function Logo({ className = '', size = 32 }: LogoProps) {
+export default function Logo({ className = '', size = 28 }: LogoProps) {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 100 100"
+      viewBox="0 0 32 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <defs>
-        <linearGradient id="ssusGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#a78bfa" />
-          <stop offset="50%" stopColor="#00f5d4" />
-          <stop offset="100%" stopColor="#7b61ff" />
-        </linearGradient>
-        <linearGradient id="ssusAccent" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00f5d4" />
-          <stop offset="100%" stopColor="#a78bfa" />
-        </linearGradient>
-      </defs>
-
-      {/* Emblem Shield Outline */}
+      <rect width="32" height="32" rx="8" fill="#171923" />
+      <rect x="0.5" y="0.5" width="31" height="31" rx="7.5" stroke="#2b2f42" />
+      
+      {/* Structural building & graduation cap motif */}
       <path
-        d="M50 8 L85 24 V52 C85 72 50 92 50 92 C50 92 15 72 15 52 V24 L50 8 Z"
-        fill="url(#ssusGrad)"
-        fillOpacity="0.12"
-        stroke="url(#ssusGrad)"
-        strokeWidth="2.5"
+        d="M16 7L24 11.5L16 16L8 11.5L16 7Z"
+        fill="#4F6EF7"
+      />
+      <path
+        d="M11 14.5V19.5C11 20.8807 13.2386 22 16 22C18.7614 22 21 20.8807 21 19.5V14.5"
+        stroke="#E0E7FF"
+        strokeWidth="1.75"
+        strokeLinecap="round"
         strokeLinejoin="round"
       />
-
-      {/* Graduation Cap Top */}
-      <polygon points="50,22 82,36 50,50 18,36" fill="url(#ssusGrad)" />
-
-      {/* Cap Base */}
       <path
-        d="M30 43 V56 C30 63 70 63 70 56 V43"
-        fill="none"
-        stroke="url(#ssusGrad)"
-        strokeWidth="3.5"
+        d="M24 11.5V18.5"
+        stroke="#4F6EF7"
+        strokeWidth="1.75"
         strokeLinecap="round"
       />
-
-      {/* Tassel */}
-      <path
-        d="M80 37 V58"
-        stroke="url(#ssusAccent)"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-      <circle cx="80" cy="61" r="3" fill="#00f5d4" />
-
-      {/* Smart Utility Node Spark */}
-      <circle cx="50" cy="74" r="4.5" fill="#00f5d4" />
-      <path
-        d="M50 63 V69.5 M38 74 H45.5 M54.5 74 H62"
-        stroke="#00f5d4"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
+      <circle cx="24" cy="19.5" r="1" fill="#10B981" />
     </svg>
   );
 }

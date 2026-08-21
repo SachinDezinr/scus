@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { Eye, EyeOff, ArrowRight, UserPlus, LogIn } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide-react';
 import Logo from '@/components/logo';
 
 export default function LoginPage() {
@@ -29,15 +29,15 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
-      toast.error('Please fill in all fields');
+      toast.error('Please fill in all required fields');
       return;
     }
     if (mode === 'register' && !name.trim()) {
-      toast.error('Please enter your name');
+      toast.error('Please enter your full name');
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error('Please enter a valid email');
+      toast.error('Please enter a valid email address');
       return;
     }
     if (password.length < 6) {
@@ -52,134 +52,125 @@ export default function LoginPage() {
     if (result.error) {
       toast.error(result.error);
     } else {
-      toast.success(mode === 'login' ? 'Welcome back!' : 'Account created!');
+      toast.success(mode === 'login' ? 'Authentication successful' : 'Account created successfully');
       router.replace('/dashboard');
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center mesh-bg">
-        <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0b0c10]">
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen mesh-bg flex items-center justify-center p-4">
-      {/* Background decorations */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 -left-32 w-64 h-64 rounded-full bg-[#a78bfa]/10 blur-[100px]" />
-        <div className="absolute bottom-1/4 -right-32 w-64 h-64 rounded-full bg-[#00f5d4]/10 blur-[100px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-[#7b61ff]/5 blur-[120px]" />
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md relative"
-      >
-        {/* Logo */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className="text-center mb-8"
-        >
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-secondary/80 border border-primary/30 flex items-center justify-center shadow-lg glow-primary">
-            <Logo size={42} />
+    <div className="min-h-screen mesh-bg flex flex-col justify-center items-center p-4">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <div className="inline-flex p-2 rounded-xl bg-[#14161f] border border-[#202330] mb-3">
+            <Logo size={36} />
           </div>
-          <h1 className="text-2xl font-bold gradient-text">Student Utility System</h1>
-          <p className="text-muted-foreground text-sm mt-1">Your campus companion</p>
-        </motion.div>
+          <h1 className="text-xl font-bold text-white tracking-tight">Smart Student Utility System</h1>
+          <p className="text-xs text-muted-foreground mt-1">Campus Operations & Resource Management</p>
+        </div>
 
         {/* Card */}
-        <div className="glass-card rounded-2xl p-6 md:p-8">
-          {/* Tab switcher */}
-          <div className="flex bg-secondary/50 rounded-xl p-1 mb-6">
-            {(['login', 'register'] as const).map(m => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                  mode === m ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {m === 'login' ? 'Sign In' : 'Sign Up'}
-              </button>
-            ))}
+        <div className="glass-card rounded-xl p-6 border border-[#232634] shadow-xl">
+          {/* Switcher */}
+          <div className="flex p-1 rounded-lg bg-[#171822] border border-[#232634] mb-5">
+            <button
+              type="button"
+              onClick={() => setMode('login')}
+              className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                mode === 'login' ? 'bg-[#252838] text-white shadow-xs' : 'text-muted-foreground hover:text-white'
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('register')}
+              className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                mode === 'register' ? 'bg-[#252838] text-white shadow-xs' : 'text-muted-foreground hover:text-white'
+              }`}
+            >
+              Create Account
+            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-              >
-                <label className="block text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">Full Name</label>
+              <div>
+                <label className="block text-[11px] font-mono uppercase text-muted-foreground mb-1">Full Name</label>
                 <input
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  placeholder="John Doe"
-                  className="w-full px-4 py-3 rounded-xl bg-secondary/50 border border-border text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-colors"
+                  placeholder="e.g. Alex Morgan"
+                  required
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-[#14161f] border border-[#232634] text-xs text-white placeholder:text-muted-foreground/40 focus:outline-none"
                 />
-              </motion.div>
+              </div>
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">Email</label>
+              <label className="block text-[11px] font-mono uppercase text-muted-foreground mb-1">Campus Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="you@college.edu"
-                className="w-full px-4 py-3 rounded-xl bg-secondary/50 border border-border text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-colors"
+                placeholder="student@university.edu"
+                required
+                className="w-full px-3.5 py-2.5 rounded-lg bg-[#14161f] border border-[#232634] text-xs text-white placeholder:text-muted-foreground/40 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">Password</label>
+              <label className="block text-[11px] font-mono uppercase text-muted-foreground mb-1">Password</label>
               <div className="relative">
                 <input
                   type={showPw ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="Min. 6 characters"
-                  className="w-full px-4 py-3 rounded-xl bg-secondary/50 border border-border text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-colors pr-12"
+                  placeholder="••••••••"
+                  required
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-[#14161f] border border-[#232634] text-xs text-white placeholder:text-muted-foreground/40 focus:outline-none pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white"
                 >
-                  {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
             </div>
 
-            <motion.button
+            <button
               type="submit"
               disabled={submitting}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#a78bfa] to-[#7b61ff] text-white font-semibold text-sm flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-primary/25 transition-shadow disabled:opacity-50"
+              className="w-full mt-2 py-2.5 rounded-lg bg-primary hover:bg-primary/90 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             >
               {submitting ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  {mode === 'login' ? <LogIn size={18} /> : <UserPlus size={18} />}
-                  {mode === 'login' ? 'Sign In' : 'Create Account'}
-                  <ArrowRight size={16} />
+                  <span>{mode === 'login' ? 'Authenticate' : 'Complete Registration'}</span>
+                  <ArrowRight size={14} />
                 </>
               )}
-            </motion.button>
+            </button>
           </form>
+
+          <div className="mt-5 pt-4 border-t border-[#1c1f2b] flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
+            <ShieldCheck size={14} className="text-emerald-500" />
+            <span>Institutional access token required</span>
+          </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
