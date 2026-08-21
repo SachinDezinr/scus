@@ -109,14 +109,14 @@ export default function ResourcesPage() {
 
   const isOwner = (res: Resource) => user?.id === res.user_id || user?.role === 'admin';
 
-  const inputCls = "w-full px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-secondary/50 border border-border text-xs sm:text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-colors";
+  const inputCls = "w-full px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-[#14161f] border border-border text-xs sm:text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-colors text-foreground";
   const labelCls = "block text-[11px] font-semibold text-muted-foreground mb-1 uppercase tracking-wider";
 
   const courses = [...new Set(resources.map(r => r.course_name))];
   const subjects = [...new Set(resources.map(r => r.subject_name))];
 
   return (
-    <div className="max-w-6xl mx-auto w-full">
+    <div className="max-w-6xl mx-auto w-full space-y-5">
       {/* Confirm Delete Modal */}
       <AnimatePresence>
         {confirmDelete && (
@@ -138,8 +138,8 @@ export default function ResourcesPage() {
                 Delete <span className="text-foreground font-semibold">"{confirmDelete.name}"</span>?
               </p>
               <div className="flex gap-3">
-                <button onClick={() => setConfirmDelete(null)} className="flex-1 py-2.5 rounded-xl glass-card text-xs sm:text-sm font-semibold">Cancel</button>
-                <button onClick={handleDelete} className="flex-1 py-2.5 rounded-xl bg-coral text-white text-xs sm:text-sm font-semibold">Delete</button>
+                <button onClick={() => setConfirmDelete(null)} className="flex-1 py-2.5 rounded-xl glass-card text-xs sm:text-sm font-semibold hover:border-border/80">Cancel</button>
+                <button onClick={handleDelete} className="flex-1 py-2.5 rounded-xl bg-coral text-white text-xs sm:text-sm font-semibold hover:bg-coral/90">Delete</button>
               </div>
             </motion.div>
           </motion.div>
@@ -193,7 +193,7 @@ export default function ResourcesPage() {
       </AnimatePresence>
 
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-5 sm:mb-6">
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center gap-2 mb-1">
           <BookOpen size={16} className="text-amber" />
           <span className="text-[11px] font-semibold text-amber uppercase tracking-widest">Resources</span>
@@ -201,27 +201,29 @@ export default function ResourcesPage() {
         <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
           Resource <span className="gradient-text">Exchange</span>
         </h1>
-        <p className="text-muted-foreground mt-0.5 text-xs sm:text-sm">Share and download notes, PYQs, and study materials.</p>
+        <p className="text-muted-foreground mt-0.5 text-xs sm:text-sm">Share and download verified notes, PYQs, and semester study guides.</p>
       </motion.div>
 
       {/* Actions */}
-      <div className="flex flex-wrap gap-2.5 mb-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <button
           onClick={() => setShowUpload(!showUpload)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all ${
             showUpload ? 'bg-amber text-[#0a0a0f]' : 'glass-card text-amber hover:border-amber/30'
           }`}
         >
           <Upload size={14} />
-          Upload Resource
+          {showUpload ? 'Close Upload' : 'Upload Resource'}
         </button>
       </div>
 
       {/* Upload Form */}
       {showUpload && (
-        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-5 overflow-hidden">
-          <div className="glass-card rounded-2xl p-4 sm:p-6 max-w-2xl">
-            <h2 className="text-sm sm:text-base font-bold mb-4 flex items-center gap-2 text-white"><Upload size={16} className="text-amber" /> Upload Study Material</h2>
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden">
+          <div className="glass-card rounded-2xl p-4 sm:p-6 max-w-2xl border-amber/30">
+            <h2 className="text-sm sm:text-base font-bold mb-4 flex items-center gap-2 text-white">
+              <Upload size={16} className="text-amber" /> Upload Study Material
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-3.5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><label className={labelCls}>Your Name *</label><input name="uploader_name" required className={inputCls} placeholder="e.g. Sachin Panwar" /></div>
@@ -238,31 +240,53 @@ export default function ResourcesPage() {
         </motion.div>
       )}
 
-      {/* Filters */}
-      <div className="glass-card rounded-2xl p-3.5 sm:p-4 mb-5">
-        <div className="flex items-center gap-2 mb-2.5">
-          <Filter size={13} className="text-primary" />
-          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Filters</span>
+      {/* Filters (Clean spacing with no overlap on laptops & smaller screens) */}
+      <div className="glass-card rounded-2xl p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Filter size={14} className="text-primary" />
+          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Search & Filters</span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <select value={courseFilter} onChange={e => setCourseFilter(e.target.value)} className={`${inputCls} pl-9`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {/* Course filter */}
+          <div className="relative flex items-center">
+            <div className="absolute left-3.5 pointer-events-none text-muted-foreground flex items-center">
+              <Search size={15} />
+            </div>
+            <select
+              value={courseFilter}
+              onChange={e => setCourseFilter(e.target.value)}
+              className={`${inputCls} pl-10.5 pr-8 appearance-none cursor-pointer`}
+            >
               <option value="">All Courses</option>
               {courses.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <select value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)} className={`${inputCls} pl-9`}>
+
+          {/* Subject filter */}
+          <div className="relative flex items-center">
+            <div className="absolute left-3.5 pointer-events-none text-muted-foreground flex items-center">
+              <Search size={15} />
+            </div>
+            <select
+              value={subjectFilter}
+              onChange={e => setSubjectFilter(e.target.value)}
+              className={`${inputCls} pl-10.5 pr-8 appearance-none cursor-pointer`}
+            >
               <option value="">All Subjects</option>
               {subjects.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
+
+          {/* Clear button */}
           {(courseFilter || subjectFilter) && (
-            <button onClick={() => { setCourseFilter(''); setSubjectFilter(''); }} className="text-xs text-coral hover:underline self-center text-left sm:text-center">
-              Clear Filters
-            </button>
+            <div className="flex items-center sm:col-span-2 lg:col-span-1">
+              <button
+                onClick={() => { setCourseFilter(''); setSubjectFilter(''); }}
+                className="text-xs font-semibold text-coral hover:text-coral/80 transition-colors py-2 px-1"
+              >
+                ✕ Clear all filters
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -276,7 +300,7 @@ export default function ResourcesPage() {
           <p className="text-xs sm:text-sm text-muted-foreground">No resources found. Be the first to upload!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {resources.map(res => (
             <motion.div key={res.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card glass-card-hover rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
               <div>
@@ -315,7 +339,7 @@ export default function ResourcesPage() {
                 href={res.file_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-2 sm:py-2.5 rounded-xl bg-amber/10 text-amber text-xs font-semibold hover:bg-amber/20 transition-colors mt-2"
+                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-amber/10 text-amber text-xs font-semibold hover:bg-amber/20 transition-colors mt-3"
               >
                 <Download size={13} /> Download PDF
               </a>

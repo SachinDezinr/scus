@@ -105,11 +105,11 @@ export default function AdminPage() {
 
   if (!user || user.role !== 'admin') {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="glass-card rounded-2xl p-12 text-center">
+      <div className="flex items-center justify-center min-h-[60vh] p-4">
+        <div className="glass-card rounded-2xl p-8 sm:p-12 text-center max-w-md w-full">
           <Shield size={48} className="mx-auto text-coral mb-4" />
-          <h2 className="text-xl font-bold mb-2">Access Denied</h2>
-          <p className="text-muted-foreground">This area is restricted to administrators only.</p>
+          <h2 className="text-xl font-bold mb-2 text-white">Access Denied</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">This area is restricted to administrators only.</p>
         </div>
       </div>
     );
@@ -119,7 +119,7 @@ export default function AdminPage() {
   const resolvedComplaints = complaints.filter(c => c.status === 'resolved');
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto w-full space-y-5 sm:space-y-6">
       <AdminDeleteModal
         confirmDelete={confirmDelete}
         onClose={() => setConfirmDelete(null)}

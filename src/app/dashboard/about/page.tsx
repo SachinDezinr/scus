@@ -1,59 +1,99 @@
 'use client';
 
-import { Shield, Search, BookOpen, Building2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Shield, Search, BookOpen, Building2, Cpu, CheckCircle2 } from 'lucide-react';
 
 export default function AboutPage() {
   return (
-    <div className="space-y-8 max-w-4xl">
-      <div className="pb-6 border-b border-[#1f2230]">
-        <span className="text-[11px] font-mono uppercase tracking-wider text-primary font-semibold">Institutional Specs</span>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mt-1">
+    <div className="space-y-6 sm:space-y-8 max-w-5xl w-full mx-auto">
+      {/* Top Header */}
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="pb-5 sm:pb-6 border-b border-[#1f2230]">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-primary font-semibold">Institutional Specs</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
           About <span className="gradient-text">Campus Utility System</span>
         </h1>
-        <p className="text-xs md:text-sm text-muted-foreground mt-1">
-          Architected for campus efficiency, collaborative study material circulation, and infrastructure upkeep.
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 max-w-2xl leading-relaxed">
+          Architected for high campus efficiency, collaborative peer-to-peer study material circulation, lost item recovery, and rapid infrastructure upkeep.
         </p>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Core Utility Modules */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
         {[
           {
             title: 'Lost & Found Registry',
             desc: 'Automated weighted string matching algorithm comparing brand, item name, color, and location to connect finders with owners securely.',
             icon: Search,
+            tag: 'Automated Matching',
           },
           {
             title: 'Resource Repository',
             desc: 'Curated repository for semester notes, PYQs, and exam preparation guides indexed by course code and subject title.',
             icon: BookOpen,
+            tag: 'Peer Knowledge',
           },
           {
             title: 'Infrastructure Tracking',
-            desc: 'Incident reporting pipeline enabling students to report broken facilities with photo evidence and priority tagging.',
+            desc: 'Incident reporting pipeline enabling students to report broken facilities with classroom tags, priority levels, and photo evidence.',
             icon: Building2,
+            tag: 'Rapid Repair',
           },
           {
             title: 'Role-Based Permissions',
             desc: 'Granular access controls isolating administrative triage actions from standard student submissions.',
             icon: Shield,
+            tag: 'Secured Access',
           },
         ].map((mod, i) => (
-          <div key={i} className="glass-card rounded-xl p-5 border border-[#232634]">
-            <div className="w-8 h-8 rounded-lg bg-[#191b24] border border-[#262a3c] flex items-center justify-center text-primary mb-3">
-              <mod.icon size={16} />
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+            className="glass-card glass-card-hover rounded-xl p-5 sm:p-6 border border-[#232634] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="w-9 h-9 rounded-lg bg-[#191b24] border border-[#262a3c] flex items-center justify-center text-primary">
+                  <mod.icon size={17} />
+                </div>
+                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                  {mod.tag}
+                </span>
+              </div>
+              <h3 className="text-sm sm:text-base font-bold text-white mb-1.5">{mod.title}</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{mod.desc}</p>
             </div>
-            <h3 className="text-sm font-bold text-white mb-1">{mod.title}</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">{mod.desc}</p>
-          </div>
+          </motion.div>
         ))}
       </div>
 
-      <div className="p-5 rounded-xl bg-[#14161f] border border-[#202330]">
-        <h3 className="text-sm font-bold text-white mb-1">Architecture & Security</h3>
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          Powered by Next.js 15 App Router, TypeScript, and Neon Serverless Postgres. Inputs are sanitized against XSS vectors and secured with token authorization.
+      {/* Architecture & Tech Stack Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="p-5 sm:p-6 rounded-2xl bg-[#14161f] border border-[#202330] space-y-3"
+      >
+        <div className="flex items-center gap-2">
+          <Cpu size={18} className="text-primary" />
+          <h3 className="text-sm sm:text-base font-bold text-white">Architecture & Engineering</h3>
+        </div>
+        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+          Engineered using Next.js 15 App Router, React 19, TypeScript, and Neon Serverless PostgreSQL. Security layers include strict parameterized SQL execution, client-side data sanitization against XSS vectors, and rate-limited authentication barriers.
         </p>
-      </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-[11px] font-mono text-muted-foreground">
+          {['Next.js 15 App Router', 'Neon Serverless Postgres', 'TypeScript Strict', 'Tailwind CSS'].map((tech, idx) => (
+            <div key={idx} className="flex items-center gap-1.5 p-2 rounded-lg bg-[#1a1d29] border border-[#262b3d]">
+              <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
+              <span className="truncate">{tech}</span>
+            </div>
+          ))}
+        </div>
+      </motion.div>
     </div>
   );
 }
