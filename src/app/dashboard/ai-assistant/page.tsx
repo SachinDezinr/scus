@@ -4,28 +4,10 @@ import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Sparkles, Send, Bot, Search, BookOpen,
-  Building2, Shield, Download, ExternalLink, Lightbulb
+  Building2, Shield, Download, ExternalLink, Lightbulb, RotateCcw
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
-
-interface ActionableCard {
-  type: 'resource' | 'lost' | 'found' | 'complaint' | 'stat';
-  id?: string;
-  title: string;
-  subtitle?: string;
-  meta?: string;
-  link?: string;
-  badge?: string;
-  badgeColor?: string;
-}
-
-interface Message {
-  id: string;
-  sender: 'user' | 'bot';
-  text: string;
-  cards?: ActionableCard[];
-  timestamp: string;
-}
+import { useChat } from '@/lib/chat-context';
 
 function renderFormattedText(text: string) {
   const parts = text.split(/(\*\*.*?\*\*)/g);
@@ -38,80 +20,20 @@ function renderFormattedText(text: string) {
 }
 
 export default function AIAssistantPage() {
-  const { user, authFetch } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'welcome',
-      sender: 'bot',
-      text: `Welcome to the **Campus AI Assistant**!\n\nAsk me about study resources, lost items, infrastructure complaints, or administrative system statistics.`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    },
-  ]);
+  const { user } = useAuth();
+  const { messages, loading, sendMessage, clearChat } = useChat();
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = async (queryText?: string) => {
+  const handleSend = (queryText?: string) => {
     const text = queryText || input.trim();
     if (!text || loading) return;
-
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      sender: 'user',
-      text,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setMessages(prev => [...prev, userMsg]);
     if (!queryText) setInput('');
-    setLoading(true);
-
-    try {
-      const res = await authFetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            sender: 'bot',
-            text: data.reply || 'Here is what I found.',
-            cards: data.cards || [],
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          },
-        ]);
-      } else {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            sender: 'bot',
-            text: 'An error occurred while fetching information.',
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          },
-        ]);
-      }
-    } catch {
-      setMessages(prev => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          sender: 'bot',
-          text: 'Network error. Please try again.',
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
-    }
-    setLoading(false);
+    sendMessage(text);
   };
 
   const suggestions = user?.role === 'admin'
@@ -131,14 +53,26 @@ export default function AIAssistantPage() {
   return (
     <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col h-[calc(100dvh-5.5rem)] md:h-[calc(100dvh-6.5rem)]">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-3 shrink-0">
-        <div className="flex items-center gap-2 mb-0.5">
-          <Sparkles size={16} className="text-neon" />
-          <span className="text-[11px] font-semibold text-neon uppercase tracking-widest">Natural Language Assistant</span>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-3 shrink-0 flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <Sparkles size={16} className="text-neon" />
+            <span className="text-[11px] font-semibold text-neon uppercase tracking-widest">Natural Language Assistant</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
+            AI Campus <span className="gradient-text">Chatbot</span>
+          </h1>
         </div>
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-          AI Campus <span className="gradient-text">Chatbot</span>
-        </h1>
+        {messages.length > 1 && (
+          <button
+            onClick={clearChat}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass-card text-xs font-semibold text-muted-foreground hover:text-white transition-colors"
+            title="Start new conversation"
+          >
+            <RotateCcw size={13} />
+            <span className="hidden sm:inline">Clear Chat</span>
+          </button>
+        )}
       </motion.div>
 
       {/* Main Chat Container */}

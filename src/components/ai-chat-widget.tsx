@@ -3,29 +3,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Bot, X, Send, Download, ExternalLink
+  Bot, X, Send, Download, ExternalLink, RotateCcw
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { useChat } from '@/lib/chat-context';
 import { usePathname } from 'next/navigation';
-
-interface ActionableCard {
-  type: 'resource' | 'lost' | 'found' | 'complaint' | 'stat';
-  id?: string;
-  title: string;
-  subtitle?: string;
-  meta?: string;
-  link?: string;
-  badge?: string;
-  badgeColor?: string;
-}
-
-interface Message {
-  id: string;
-  sender: 'user' | 'bot';
-  text: string;
-  cards?: ActionableCard[];
-  timestamp: string;
-}
 
 function renderFormattedText(text: string) {
   const parts = text.split(/(\*\*.*?\*\*)/g);
@@ -38,19 +20,11 @@ function renderFormattedText(text: string) {
 }
 
 export default function AIChatWidget() {
-  const { user, authFetch } = useAuth();
+  const { user } = useAuth();
+  const { messages, loading, sendMessage, clearChat } = useChat();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'welcome',
-      sender: 'bot',
-      text: `Hello! I'm your Campus AI Assistant. Query study notes, lost registry entries, or complaint statuses.`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    },
-  ]);
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -63,63 +37,11 @@ export default function AIChatWidget() {
     return null;
   }
 
-  const handleSend = async (customQuery?: string) => {
+  const handleSend = (customQuery?: string) => {
     const textToSend = customQuery || input.trim();
     if (!textToSend || loading) return;
-
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      sender: 'user',
-      text: textToSend,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setMessages(prev => [...prev, userMsg]);
     if (!customQuery) setInput('');
-    setLoading(true);
-
-    try {
-      const res = await authFetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: textToSend }),
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            sender: 'bot',
-            text: data.reply || 'Results retrieved.',
-            cards: data.cards || [],
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          },
-        ]);
-      } else {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            sender: 'bot',
-            text: 'Unable to process query. Please try again.',
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          },
-        ]);
-      }
-    } catch {
-      setMessages(prev => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          sender: 'bot',
-          text: 'Network error. Please try again.',
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
-    }
-    setLoading(false);
+    sendMessage(textToSend);
   };
 
   const prompts = user?.role === 'admin' 
@@ -152,15 +74,26 @@ export default function AIChatWidget() {
                 </div>
                 <div>
                   <h3 className="font-bold text-xs text-white">Campus Assistant</h3>
-                  <p className="text-[10px] text-muted-foreground">Real-time repository query</p>
+                  <p className="text-[10px] text-muted-foreground">Session saved</p>
                 </div>
               </div>
-              <button
-                onClick={() => setOpen(false)}
-                className="p-1 rounded-md text-muted-foreground hover:text-white transition-colors"
-              >
-                <X size={16} />
-              </button>
+              <div className="flex items-center gap-1">
+                {messages.length > 1 && (
+                  <button
+                    onClick={clearChat}
+                    className="p-1.5 rounded-md text-muted-foreground hover:text-white transition-colors"
+                    title="Clear Chat"
+                  >
+                    <RotateCcw size={14} />
+                  </button>
+                )}
+                <button
+                  onClick={() => setOpen(false)}
+                  className="p-1 rounded-md text-muted-foreground hover:text-white transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
             {/* Chat Messages */}
