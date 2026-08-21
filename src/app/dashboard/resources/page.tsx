@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   BookOpen, Upload, Download, Filter, FileText, User,
-  Lightbulb, Sparkles, Search, Pencil, Trash2, Save, X
+  Lightbulb, Sparkles, Search, Pencil, Trash2, Save, X,
+  ChevronDown
 } from 'lucide-react';
 
 interface Resource {
@@ -240,7 +241,7 @@ export default function ResourcesPage() {
         </motion.div>
       )}
 
-      {/* Filters (Clean spacing with no overlap on laptops & smaller screens) */}
+      {/* Filters (Clean spacing with isolated left padding for icon) */}
       <div className="glass-card rounded-2xl p-4">
         <div className="flex items-center gap-2 mb-3">
           <Filter size={14} className="text-primary" />
@@ -248,33 +249,39 @@ export default function ResourcesPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {/* Course filter */}
-          <div className="relative flex items-center">
-            <div className="absolute left-3.5 pointer-events-none text-muted-foreground flex items-center">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground z-10">
               <Search size={15} />
             </div>
             <select
               value={courseFilter}
               onChange={e => setCourseFilter(e.target.value)}
-              className={`${inputCls} pl-10.5 pr-8 appearance-none cursor-pointer`}
+              className="w-full pl-10 pr-9 py-2.5 sm:py-3 rounded-xl bg-[#14161f] border border-border text-xs sm:text-sm text-foreground focus:outline-none focus:border-primary appearance-none cursor-pointer"
             >
               <option value="">All Courses</option>
               {courses.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-muted-foreground">
+              <ChevronDown size={14} />
+            </div>
           </div>
 
           {/* Subject filter */}
-          <div className="relative flex items-center">
-            <div className="absolute left-3.5 pointer-events-none text-muted-foreground flex items-center">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground z-10">
               <Search size={15} />
             </div>
             <select
               value={subjectFilter}
               onChange={e => setSubjectFilter(e.target.value)}
-              className={`${inputCls} pl-10.5 pr-8 appearance-none cursor-pointer`}
+              className="w-full pl-10 pr-9 py-2.5 sm:py-3 rounded-xl bg-[#14161f] border border-border text-xs sm:text-sm text-foreground focus:outline-none focus:border-primary appearance-none cursor-pointer"
             >
               <option value="">All Subjects</option>
               {subjects.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-muted-foreground">
+              <ChevronDown size={14} />
+            </div>
           </div>
 
           {/* Clear button */}
