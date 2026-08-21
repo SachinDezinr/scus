@@ -124,7 +124,7 @@ export default function Sidebar() {
           className="p-1.5 rounded-md hover:bg-[#161822] text-muted-foreground hover:text-white transition-colors"
           aria-label="Toggle Navigation"
         >
-          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          {mobileOpen ? <X size={19.5} /> : <Menu size={19.5} />}
         </button>
       </div>
 

@@ -69,11 +69,11 @@
   --ring: #4f6ef7;
   --neon: #10b981;
   --coral: #f43f5e;
-  --amber-accent: #f59e0b;
+  --amber-accent: #f7a10e;
   --chart-1: #4f6ef7;
   --chart-2: #10b981;
   --chart-3: #f43f5e;
-  --chart-4: #f59e0b;
+  --chart-4: #f7a10e;
   --chart-5: #8b5cf6;
   --sidebar: #0e0f14;
   --sidebar-foreground: #f0f2f5;
@@ -152,7 +152,7 @@
 
 .gradient-text {
   color: #ffffff;
-  background: linear-gradient(180deg, #ffffff 40%, #7094ff 100%);
+  background: linear-gradient(180deg, #ffffff 37%, #7094ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
