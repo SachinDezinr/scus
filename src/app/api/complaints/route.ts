@@ -30,7 +30,6 @@ export async function POST(req: NextRequest) {
 
     const priority = ['low', 'medium', 'high', 'urgent'].includes(rawPriority) ? rawPriority : 'medium';
 
-    // File validation: Image files only, max 5MB
     if (photo && photo.size > 0) {
       const fileCheck = validateUploadedFile(photo, {
         maxSizeMB: 5,
@@ -50,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     const [complaint] = await sql`
       INSERT INTO complaints (item_name, class_name, department, floor, description, photo_url, priority, user_id, status)
-      VALUES (${item_name}, ${class_name}, ${department}, ${floor}, ${description}, ${photo_url}, ${priority}, ${user.userId}, 'pending')
+      VALUES (${item_name}, ${class_name}, ${department}, ${floor}, ${description}, ${photo_url}, ${priority}, ${user.userId}::uuid, 'pending')
       RETURNING *
     `;
 
@@ -72,7 +71,7 @@ export async function GET(req: NextRequest) {
     if (user.role === 'admin') {
       complaints = await sql`SELECT * FROM complaints ORDER BY created_at DESC`;
     } else {
-      complaints = await sql`SELECT * FROM complaints WHERE user_id = ${user.userId} ORDER BY created_at DESC`;
+      complaints = await sql`SELECT * FROM complaints WHERE user_id = ${user.userId}::uuid ORDER BY created_at DESC`;
     }
 
     return NextResponse.json({ complaints });
@@ -101,12 +100,12 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: 'Invalid status value' }, { status: 400 });
       }
       const [updated] = await sql`
-        UPDATE complaints SET status = ${cleanStatus} WHERE id = ${id} RETURNING *
+        UPDATE complaints SET status = ${cleanStatus} WHERE id = ${id}::uuid RETURNING *
       `;
       return NextResponse.json({ complaint: updated });
     }
 
-    const existing = await sql`SELECT user_id FROM complaints WHERE id = ${id} LIMIT 1`;
+    const existing = await sql`SELECT user_id FROM complaints WHERE id = ${id}::uuid LIMIT 1`;
     if (existing.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     if (existing[0].user_id !== user.userId && user.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -120,7 +119,7 @@ export async function PATCH(req: NextRequest) {
         floor = COALESCE(${floor ? sanitizeText(floor) : null}, floor),
         description = COALESCE(${description ? sanitizeText(description) : null}, description),
         priority = COALESCE(${priority ? sanitizeText(priority) : null}, priority)
-      WHERE id = ${id}
+      WHERE id = ${id}::uuid
       RETURNING *
     `;
 
@@ -142,13 +141,13 @@ export async function DELETE(req: NextRequest) {
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
-    const existing = await sql`SELECT user_id FROM complaints WHERE id = ${id} LIMIT 1`;
+    const existing = await sql`SELECT user_id FROM complaints WHERE id = ${id}::uuid LIMIT 1`;
     if (existing.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     if (existing[0].user_id !== user.userId && user.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await sql`DELETE FROM complaints WHERE id = ${id}`;
+    await sql`DELETE FROM complaints WHERE id = ${id}::uuid`;
     return NextResponse.json({ success: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Server error';

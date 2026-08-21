@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     const [lostItem] = await sql`
       INSERT INTO lost_items (item_name, color, brand, location, remark, owner_name, phone, image_url, user_id)
-      VALUES (${item_name}, ${color}, ${brand}, ${location}, ${remark}, ${owner_name}, ${phone}, ${image_url}, ${user.userId})
+      VALUES (${item_name}, ${color}, ${brand}, ${location}, ${remark}, ${owner_name}, ${phone}, ${image_url}, ${user.userId}::uuid)
       RETURNING *
     `;
 
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
       await sql`
         INSERT INTO matched_items (lost_item_id, found_item_id, match_score, lost_item_data, found_item_data, expires_at)
-        VALUES (${lostItem.id}, ${bestMatch.id}, ${bestScore}, ${JSON.stringify(lostItem)}, ${JSON.stringify(bestMatch)}, ${expiresAt})
+        VALUES (${lostItem.id}::uuid, ${bestMatch.id}::uuid, ${bestScore}, ${JSON.stringify(lostItem)}::jsonb, ${JSON.stringify(bestMatch)}::jsonb, ${expiresAt}::timestamptz)
       `;
     }
 
@@ -109,7 +109,7 @@ export async function PATCH(req: NextRequest) {
     const { id, item_name, color, brand, location, remark, owner_name, phone } = await req.json();
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
-    const existing = await sql`SELECT user_id FROM lost_items WHERE id = ${id} LIMIT 1`;
+    const existing = await sql`SELECT user_id FROM lost_items WHERE id = ${id}::uuid LIMIT 1`;
     if (existing.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     if (existing[0].user_id !== user.userId && user.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -124,7 +124,7 @@ export async function PATCH(req: NextRequest) {
         remark = COALESCE(${remark ?? null}, remark),
         owner_name = COALESCE(${owner_name ?? null}, owner_name),
         phone = COALESCE(${phone ?? null}, phone)
-      WHERE id = ${id}
+      WHERE id = ${id}::uuid
       RETURNING *
     `;
 
@@ -146,13 +146,13 @@ export async function DELETE(req: NextRequest) {
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
-    const existing = await sql`SELECT user_id FROM lost_items WHERE id = ${id} LIMIT 1`;
+    const existing = await sql`SELECT user_id FROM lost_items WHERE id = ${id}::uuid LIMIT 1`;
     if (existing.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     if (existing[0].user_id !== user.userId && user.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await sql`DELETE FROM lost_items WHERE id = ${id}`;
+    await sql`DELETE FROM lost_items WHERE id = ${id}::uuid`;
     return NextResponse.json({ success: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Server error';

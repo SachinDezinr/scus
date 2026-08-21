@@ -53,7 +53,67 @@ export async function POST(req: NextRequest) {
 
     const [foundItem] = await sql`
       INSERT INTO found_items (item_name, color, brand, location, remark, finder_name, phone, image_url, user_id)
-      VALUES (${item_name}, ${color}, ${brand}, ${location}, ${remark}, ${finder_name}, ${phone}, ${image_url}, ${user.userId})
+      VALUES (${item_name}, ${color}, ${brand}, ${location}, ${remark}, ${finder_name}, ${phone}, ${image_url}, ${user.userId}::uuid)
+      RETURNING *
+    `;
+
+    const lostItems = await sql`SELECT<dyad-write path="src/app/api/lost-found/found/route.ts" description="Fix explicit SQL casting for UUID and JSONB matched items in found items route">
+import { NextRequest, NextResponse } from 'next/server';
+import { sql, ensureTablesExist } from '@/lib/db';
+import { getTokenFromRequest } from '@/lib/auth';
+
+function computeMatchScore(lost: Record<string, string | null>, found: Record<string, string | null>): number {
+  let score = 0;
+  const maxScore = 100;
+
+  if (lost.brand && found.brand && lost.brand.toLowerCase() === found.brand.toLowerCase()) score += 40;
+  if (lost.item_name && found.item_name) {
+    const lostName = lost.item_name.toLowerCase();
+    const foundName = found.item_name.toLowerCase();
+    if (lostName === foundName) score += 30;
+    else if (lostName.includes(foundName) || foundName.includes(lostName)) score += 20;
+  }
+  if (lost.color && found.color && lost.color.toLowerCase() === found.color.toLowerCase()) score += 20;
+  if (lost.location && found.location) {
+    const lostLoc = lost.location.toLowerCase();
+    const foundLoc = found.location.toLowerCase();
+    if (lostLoc === foundLoc) score += 10;
+    else if (lostLoc.includes(foundLoc) || foundLoc.includes(lostLoc)) score += 5;
+  }
+  return (score / maxScore) * 100;
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    await ensureTablesExist();
+
+    const user = getTokenFromRequest(req);
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const formData = await req.formData();
+    const item_name = formData.get('item_name') as string;
+    const color = formData.get('color') as string;
+    const brand = formData.get('brand') as string | null;
+    const location = formData.get('location') as string | null;
+    const remark = formData.get('remark') as string | null;
+    const finder_name = formData.get('finder_name') as string;
+    const phone = formData.get('phone') as string;
+    const image = formData.get('image') as File | null;
+
+    if (!item_name || !color || !finder_name || !phone) {
+      return NextResponse.json({ error: 'Required fields missing' }, { status: 400 });
+    }
+
+    let image_url: string | null = null;
+    if (image && image.size > 0) {
+      const buffer = Buffer.from(await image.arrayBuffer());
+      const mime = image.type || 'image/jpeg';
+      image_url = `data:${mime};base64,${buffer.toString('base64')}`;
+    }
+
+    const [foundItem] = await sql`
+      INSERT INTO found_items (item_name, color, brand, location, remark, finder_name, phone, image_url, user_id)
+      VALUES (${item_name}, ${color}, ${brand}, ${location}, ${remark}, ${finder_name}, ${phone}, ${image_url}, ${user.userId}::uuid)
       RETURNING *
     `;
 
@@ -73,7 +133,7 @@ export async function POST(req: NextRequest) {
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       await sql`
         INSERT INTO matched_items (lost_item_id, found_item_id, match_score, lost_item_data, found_item_data, expires_at)
-        VALUES (${bestMatch.id}, ${foundItem.id}, ${bestScore}, ${JSON.stringify(bestMatch)}, ${JSON.stringify(foundItem)}, ${expiresAt})
+        VALUES (${bestMatch.id}::uuid, ${foundItem.id}::uuid, ${bestScore}, ${JSON.stringify(bestMatch)}::jsonb, ${JSON.stringify(foundItem)}::jsonb, ${expiresAt}::timestamptz)
       `;
     }
 
@@ -109,7 +169,7 @@ export async function PATCH(req: NextRequest) {
     const { id, item_name, color, brand, location, remark, finder_name, phone } = await req.json();
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
-    const existing = await sql`SELECT user_id FROM found_items WHERE id = ${id} LIMIT 1`;
+    const existing = await sql`SELECT user_id FROM found_items WHERE id = ${id}::uuid LIMIT 1`;
     if (existing.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     if (existing[0].user_id !== user.userId && user.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -124,7 +184,7 @@ export async function PATCH(req: NextRequest) {
         remark = COALESCE(${remark ?? null}, remark),
         finder_name = COALESCE(${finder_name ?? null}, finder_name),
         phone = COALESCE(${phone ?? null}, phone)
-      WHERE id = ${id}
+      WHERE id = ${id}::uuid
       RETURNING *
     `;
 
@@ -146,13 +206,13 @@ export async function DELETE(req: NextRequest) {
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
-    const existing = await sql`SELECT user_id FROM found_items WHERE id = ${id} LIMIT 1`;
+    const existing = await sql`SELECT user_id FROM found_items WHERE id = ${id}::uuid LIMIT 1`;
     if (existing.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     if (existing[0].user_id !== user.userId && user.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await sql`DELETE FROM found_items WHERE id = ${id}`;
+    await sql`DELETE FROM found_items WHERE id = ${id}::uuid`;
     return NextResponse.json({ success: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Server error';

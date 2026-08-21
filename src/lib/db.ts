@@ -1,12 +1,16 @@
 import { neon } from '@neondatabase/serverless';
 
+let cachedClient: ((strings: TemplateStringsArray | string, ...values: any[]) => Promise<any[]>) | null = null;
+
 export async function sql(strings: TemplateStringsArray | string, ...values: any[]): Promise<any[]> {
   const databaseUrl = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || process.env.POSTGRES_URL || '';
   if (!databaseUrl) {
     throw new Error('Neon DATABASE_URL is missing in environment variables.');
   }
-  const queryFn = neon(databaseUrl);
-  return (await queryFn(strings, ...values)) as any[];
+  if (!cachedClient) {
+    cachedClient = neon(databaseUrl);
+  }
+  return (await cachedClient(strings, ...values)) as any[];
 }
 
 let tablesInitialized = false;

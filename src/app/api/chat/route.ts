@@ -15,7 +15,6 @@ interface ActionableCard {
   badgeColor?: string;
 }
 
-// Acronym and synonym map for common academic subjects
 const SUBJECT_ACRONYMS: Record<string, string[]> = {
   dsa: ['dsa', 'data structure', 'data structures', 'algorithm', 'algorithms', 'ds'],
   ds: ['ds', 'dsa', 'data structure', 'data structures'],
@@ -45,7 +44,6 @@ export async function POST(req: NextRequest) {
     }
 
     const ip = getClientIp(req);
-    // Rate limit: Max 20 chat messages per minute
     const rateCheck = checkRateLimit(`chat:${user.userId}:${ip}`, 20, 60 * 1000);
     if (!rateCheck.success && rateCheck.response) return rateCheck.response;
 
@@ -323,7 +321,7 @@ export async function POST(req: NextRequest) {
       } else {
         const userComplaints = await sql`
           SELECT * FROM complaints 
-          WHERE user_id = ${user.userId} 
+          WHERE user_id = ${user.userId}::uuid 
           ORDER BY created_at DESC LIMIT 5
         `;
 

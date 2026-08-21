@@ -26,7 +26,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Required fields missing' }, { status: 400 });
     }
 
-    // Validate uploaded file strictly: PDF format only, max 5MB
     const fileCheck = validateUploadedFile(file, {
       maxSizeMB: 5,
       allowedMimeTypes: ['application/pdf'],
@@ -43,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     const [resource] = await sql`
       INSERT INTO resources (uploader_name, course_name, subject_name, file_url, file_name, tips, user_id)
-      VALUES (${uploader_name}, ${course_name}, ${subject_name}, ${file_url}, ${cleanFileName}, ${tips}, ${user.userId})
+      VALUES (${uploader_name}, ${course_name}, ${subject_name}, ${file_url}, ${cleanFileName}, ${tips}, ${user.userId}::uuid)
       RETURNING *
     `;
 
@@ -105,7 +104,7 @@ export async function PATCH(req: NextRequest) {
     const { id, uploader_name, course_name, subject_name, tips } = await req.json();
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
-    const existing = await sql`SELECT user_id FROM resources WHERE id = ${id} LIMIT 1`;
+    const existing = await sql`SELECT user_id FROM resources WHERE id = ${id}::uuid LIMIT 1`;
     if (existing.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     if (existing[0].user_id !== user.userId && user.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -117,7 +116,7 @@ export async function PATCH(req: NextRequest) {
         course_name = COALESCE(${course_name ? sanitizeText(course_name) : null}, course_name),
         subject_name = COALESCE(${subject_name ? sanitizeText(subject_name) : null}, subject_name),
         tips = COALESCE(${tips ? sanitizeText(tips) : null}, tips)
-      WHERE id = ${id}
+      WHERE id = ${id}::uuid
       RETURNING *
     `;
 
@@ -139,13 +138,13 @@ export async function DELETE(req: NextRequest) {
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
-    const existing = await sql`SELECT user_id FROM resources WHERE id = ${id} LIMIT 1`;
+    const existing = await sql`SELECT user_id FROM resources WHERE id = ${id}::uuid LIMIT 1`;
     if (existing.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     if (existing[0].user_id !== user.userId && user.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await sql`DELETE FROM resources WHERE id = ${id}`;
+    await sql`DELETE FROM resources WHERE id = ${id}::uuid`;
     return NextResponse.json({ success: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Server error';
