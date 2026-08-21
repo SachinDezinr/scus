@@ -59,7 +59,7 @@ export default function DashboardPage() {
             <span className="text-[11px] font-mono uppercase tracking-wider text-primary font-semibold">Campus Operations Hub</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-            Welcome back, {user?.name}
+            Welcome back, <span className="gradient-text">{user?.name}</span>
           </h1>
           <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
             Review your campus reports, browse verified exam notes, or query the assistant.

@@ -129,11 +129,11 @@
 }
 
 .gradient-text {
-  color: #ffffff;
-  background: linear-gradient(180deg, #ffffff 30%, #a5b4fc 100%);
+  background: linear-gradient(135deg, #ffffff 25%, #60a5fa 65%, #818cf8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  display: inline-block;
 }
 
 .mesh-bg {

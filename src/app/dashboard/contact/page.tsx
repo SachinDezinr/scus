@@ -29,7 +29,7 @@ export default function ContactPage() {
       <div className="pb-6 border-b border-[#1f2230]">
         <span className="text-[11px] font-mono uppercase tracking-wider text-primary font-semibold">Inquiries & Support</span>
         <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mt-1">
-          Campus Communications
+          Campus <span className="gradient-text">Communications</span>
         </h1>
         <p className="text-xs md:text-sm text-muted-foreground mt-1">
           Reach out for technical issues, system contributions, or department integrations.

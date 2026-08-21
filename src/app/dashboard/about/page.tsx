@@ -8,7 +8,7 @@ export default function AboutPage() {
       <div className="pb-6 border-b border-[#1f2230]">
         <span className="text-[11px] font-mono uppercase tracking-wider text-primary font-semibold">Institutional Specs</span>
         <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mt-1">
-          About Smart Student Utility System
+          About <span className="gradient-text">Smart Student Utility System</span>
         </h1>
         <p className="text-xs md:text-sm text-muted-foreground mt-1">
           Architected for campus efficiency, collaborative study material circulation, and infrastructure upkeep.
