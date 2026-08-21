@@ -116,17 +116,18 @@
   background: #13141b;
   border: 1px solid #232634;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
-  transition: border-color 0.2s ease, 
-              transform 0.2s ease, 
-              box-shadow 0.2s ease;
+  transition: border-color 0.25s ease, 
+              transform 0.25s ease, 
+              box-shadow 0.25s ease;
 }
 
-/* Subtle, clean hover micro-interaction for cards only on laptop/desktop */
+/* Glowing ambient hover effect for cards */
 @media (hover: hover) and (min-width: 1024px) {
   .glass-card-hover:hover {
-    border-color: rgba(79, 110, 247, 0.35);
+    border-color: rgba(79, 110, 247, 0.55);
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 20px -3px rgba(79, 110, 247, 0.22),
+                0 8px 24px -6px rgba(0, 0, 0, 0.6);
   }
 
   .nav-item-link {
