@@ -7,7 +7,7 @@ interface LogoProps {
   size?: number;
 }
 
-export default function Logo({ className = '', size = 32 }: LogoProps) {
+export default function Logo({ className = '', size = 28 }: LogoProps) {
   return (
     <svg
       width={size}
@@ -15,7 +15,7 @@ export default function Logo({ className = '', size = 32 }: LogoProps) {
       viewBox="0 0 32 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={`shrink-0 ${className}`}
+      className={className}
     >
       <rect width="32" height="32" rx="8" fill="#171923" />
       <rect x="0.5" y="0.5" width="31" height="31" rx="7.5" stroke="#2b2f42" />
