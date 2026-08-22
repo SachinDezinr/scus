@@ -102,8 +102,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await authFetch('/api/complaints');
       if (res.ok) {
-        const data = await res.json();
-        setComplaints(data.complaints || []);
+        const data = await res.json().catch(() => ({}));
+        if (Array.isArray(data.complaints)) {
+          setComplaints(data.complaints);
+        }
       }
     } catch {
       // quiet fallback
@@ -113,15 +115,24 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const refetchLostFound = useCallback(async () => {
     if (!user) return;
     try {
-      const [lRes, fRes, mRes] = await Promise.all([
+      const [lRes, fRes, mRes] = await Promise.allSettled([
         authFetch('/api/lost-found/lost'),
         authFetch('/api/lost-found/found'),
         authFetch('/api/lost-found/matches'),
       ]);
-      const [lData, fData, mData] = await Promise.all([lRes.json(), fRes.json(), mRes.json()]);
-      setLostItems(lData.items || []);
-      setFoundItems(fData.items || []);
-      setMatches(mData.matches || []);
+
+      if (lRes.status === 'fulfilled' && lRes.value.ok) {
+        const lData = await lRes.value.json().catch(() => ({}));
+        if (Array.isArray(lData.items)) setLostItems(lData.items);
+      }
+      if (fRes.status === 'fulfilled' && fRes.value.ok) {
+        const fData = await fRes.value.json().catch(() => ({}));
+        if (Array.isArray(fData.items)) setFoundItems(fData.items);
+      }
+      if (mRes.status === 'fulfilled' && mRes.value.ok) {
+        const mData = await mRes.value.json().catch(() => ({}));
+        if (Array.isArray(mData.matches)) setMatches(mData.matches);
+      }
     } catch {
       // quiet fallback
     }
@@ -132,8 +143,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await authFetch('/api/resources');
       if (res.ok) {
-        const data = await res.json();
-        setResources(data.resources || []);
+        const data = await res.json().catch(() => ({}));
+        if (Array.isArray(data.resources)) {
+          setResources(data.resources);
+        }
       }
     } catch {
       // quiet fallback
@@ -142,7 +155,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const refetchAll = useCallback(async () => {
     if (!user) return;
-    await Promise.all([refetchComplaints(), refetchLostFound(), refetchResources()]);
+    await Promise.allSettled([refetchComplaints(), refetchLostFound(), refetchResources()]);
     setInitialLoaded(true);
   }, [user, refetchComplaints, refetchLostFound, refetchResources]);
 
@@ -160,12 +173,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user, initialLoaded, refetchAll]);
 
-  const stats = useMemo(() => ({
-    complaintsCount: complaints.length,
-    lostCount: lostItems.length,
-    foundCount: foundItems.length,
-    resourcesCount: resources.length,
-  }), [complaints.length, lostItems.length, foundItems.length, resources.length]);
+  const stats = useMemo(
+    () => ({
+      complaintsCount: complaints?.length || 0,
+      lostCount: lostItems?.length || 0,
+      foundCount: foundItems?.length || 0,
+      resourcesCount: resources?.length || 0,
+    }),
+    [complaints, lostItems, foundItems, resources]
+  );
 
   return (
     <DataContext.Provider

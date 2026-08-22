@@ -16,6 +16,18 @@ type ViewTab = 'all' | 'mine' | 'lost' | 'found' | 'matched';
 
 type AnyItem = (LostItem | FoundItem) & { _type: 'lost' | 'found' };
 
+function parseItemData(data: unknown): Record<string, any> {
+  if (!data) return {};
+  if (typeof data === 'string') {
+    try {
+      return JSON.parse(data);
+    } catch {
+      return {};
+    }
+  }
+  return typeof data === 'object' ? (data as Record<string, any>) : {};
+}
+
 export default function LostFoundPage() {
   const { user, authFetch } = useAuth();
   const { lostItems, foundItems, matches, initialLoaded, refetchLostFound } = useCampusData();
@@ -35,8 +47,8 @@ export default function LostFoundPage() {
     const form = e.currentTarget;
     try {
       const res = await authFetch('/api/lost-found/lost', { method: 'POST', body: new FormData(form) });
-      const data = await res.json();
-      if (!res.ok) { toast.error(data.error); setSubmitting(false); return; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { toast.error(data.error || 'Failed to submit report'); setSubmitting(false); return; }
       toast.success('Lost item reported!');
       form.reset();
       if (data.match) setMatchResult({ item: data.match.found, score: data.match.score, type: 'found' });
@@ -52,8 +64,8 @@ export default function LostFoundPage() {
     const form = e.currentTarget;
     try {
       const res = await authFetch('/api/lost-found/found', { method: 'POST', body: new FormData(form) });
-      const data = await res.json();
-      if (!res.ok) { toast.error(data.error); setSubmitting(false); return; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { toast.error(data.error || 'Failed to submit report'); setSubmitting(false); return; }
       toast.success('Found item reported!');
       form.reset();
       if (data.match) setMatchResult({ item: data.match.lost, score: data.match.score, type: 'lost' });
@@ -71,18 +83,26 @@ export default function LostFoundPage() {
     const payload: Record<string, string> = { id: editItem.item.id };
     fd.forEach((v, k) => { payload[k] = v as string; });
     const ep = editItem.type === 'lost' ? '/api/lost-found/lost' : '/api/lost-found/found';
-    const res = await authFetch(ep, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    if (res.ok) { toast.success('Updated!'); setEditItem(null); refetchLostFound(); }
-    else { const d = await res.json(); toast.error(d.error || 'Failed'); }
+    try {
+      const res = await authFetch(ep, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (res.ok) { toast.success('Updated!'); setEditItem(null); refetchLostFound(); }
+      else { const d = await res.json().catch(() => ({})); toast.error(d.error || 'Failed'); }
+    } catch {
+      toast.error('Network error');
+    }
     setEditSaving(false);
   };
 
   const handleDelete = async () => {
     if (!confirmDelete) return;
     const ep = confirmDelete.type === 'lost' ? `/api/lost-found/lost?id=${confirmDelete.id}` : `/api/lost-found/found?id=${confirmDelete.id}`;
-    const res = await authFetch(ep, { method: 'DELETE' });
-    if (res.ok) { toast.success('Deleted'); setConfirmDelete(null); refetchLostFound(); }
-    else toast.error('Failed to delete');
+    try {
+      const res = await authFetch(ep, { method: 'DELETE' });
+      if (res.ok) { toast.success('Deleted'); setConfirmDelete(null); refetchLostFound(); }
+      else toast.error('Failed to delete');
+    } catch {
+      toast.error('Network error');
+    }
   };
 
   const isOwner = (item: LostItem | FoundItem) => user?.id === item.user_id;
@@ -91,8 +111,8 @@ export default function LostFoundPage() {
   const lbl = "block text-[11px] font-semibold text-muted-foreground mb-1 uppercase tracking-wider";
 
   const allItems: AnyItem[] = [
-    ...lostItems.map((i: LostItem) => ({ ...i, _type: 'lost' as const })),
-    ...foundItems.map((i: FoundItem) => ({ ...i, _type: 'found' as const })),
+    ...(lostItems || []).map((i: LostItem) => ({ ...i, _type: 'lost' as const })),
+    ...(foundItems || []).map((i: FoundItem) => ({ ...i, _type: 'found' as const })),
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const myItems = allItems.filter((i: AnyItem) => i.user_id === user?.id);
@@ -101,16 +121,16 @@ export default function LostFoundPage() {
     let base: AnyItem[] = [];
     if (viewTab === 'all') base = allItems;
     else if (viewTab === 'mine') base = myItems;
-    else if (viewTab === 'lost') base = lostItems.map((i: LostItem) => ({ ...i, _type: 'lost' as const }));
-    else if (viewTab === 'found') base = foundItems.map((i: FoundItem) => ({ ...i, _type: 'found' as const }));
+    else if (viewTab === 'lost') base = (lostItems || []).map((i: LostItem) => ({ ...i, _type: 'lost' as const }));
+    else if (viewTab === 'found') base = (foundItems || []).map((i: FoundItem) => ({ ...i, _type: 'found' as const }));
 
     if (!searchQuery.trim()) return base;
     const q = searchQuery.toLowerCase();
     return base.filter((i: AnyItem) => {
       const personName = 'owner_name' in i ? i.owner_name : 'finder_name' in i ? i.finder_name : '';
       return (
-        i.item_name.toLowerCase().includes(q) ||
-        i.color.toLowerCase().includes(q) ||
+        (i.item_name && i.item_name.toLowerCase().includes(q)) ||
+        (i.color && i.color.toLowerCase().includes(q)) ||
         (i.brand && i.brand.toLowerCase().includes(q)) ||
         (i.location && i.location.toLowerCase().includes(q)) ||
         (i.remark && i.remark.toLowerCase().includes(q)) ||
@@ -380,9 +400,9 @@ export default function LostFoundPage() {
               {([
                 { id: 'all', label: 'All', count: allItems.length, icon: Users },
                 { id: 'mine', label: 'Mine', count: myItems.length, icon: UserCheck },
-                { id: 'lost', label: 'Lost', count: lostItems.length, icon: AlertTriangle },
-                { id: 'found', label: 'Found', count: foundItems.length, icon: Package },
-                { id: 'matched', label: 'Matched', count: matches.length, icon: Sparkles },
+                { id: 'lost', label: 'Lost', count: (lostItems || []).length, icon: AlertTriangle },
+                { id: 'found', label: 'Found', count: (foundItems || []).length, icon: Package },
+                { id: 'matched', label: 'Matched', count: (matches || []).length, icon: Sparkles },
               ] as const).map(t => (
                 <button key={t.id} onClick={() => setViewTab(t.id)}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${viewTab === t.id ? 'bg-primary text-primary-foreground shadow' : 'glass-card text-muted-foreground hover:text-foreground'}`}>
@@ -395,41 +415,45 @@ export default function LostFoundPage() {
             {!initialLoaded ? (
               <div className="flex justify-center py-16"><div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
             ) : viewTab === 'matched' ? (
-              matches.length === 0 ? (
+              (matches || []).length === 0 ? (
                 <div className="glass-card rounded-2xl p-8 sm:p-12 text-center"><Sparkles size={36} className="mx-auto text-muted-foreground mb-3" /><p className="text-xs sm:text-sm text-muted-foreground">No matched items yet.</p></div>
               ) : (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                  {matches.map((m: MatchedItem) => (
-                    <motion.div key={m.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card glass-card-hover rounded-2xl p-4 sm:p-5 transition-all duration-200 flex flex-col justify-between">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Sparkles size={15} className="text-neon" />
-                        <span className="text-xs font-bold text-neon uppercase tracking-widest">Score: {m.match_score.toFixed(0)}%</span>
-                        <span className="ml-auto text-[10px] sm:text-xs text-muted-foreground">Expires: {new Date(m.expires_at).toLocaleDateString('en-IN')}</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        {[
-                          { label: 'Lost Item', data: m.lost_item_data, color: 'text-coral', nameKey: 'owner_name', role: 'Owner' },
-                          { label: 'Found Item', data: m.found_item_data, color: 'text-neon', nameKey: 'finder_name', role: 'Finder' },
-                        ].map(side => (
-                          <div key={side.label} className="glass-card rounded-xl p-3.5 sm:p-4">
-                            <span className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${side.color}`}>{side.label}</span>
-                            <h4 className="font-bold text-sm sm:text-base text-white mb-2">{side.data.item_name}</h4>
-                            <div className="space-y-1 text-xs sm:text-sm text-muted-foreground">
-                              <p>Color: {side.data.color}</p>
-                              {side.data.brand && <p>Brand: {side.data.brand}</p>}
-                              {side.data.location && <p>Location: {side.data.location}</p>}
-                              {side.data.remark && <p>Remark: {side.data.remark}</p>}
-                              <p className="font-semibold text-foreground mt-2">
-                                {side.role}: {side.data[side.nameKey as keyof (LostItem | FoundItem)]}
-                              </p>
-                              <p>Phone: {side.data.phone}</p>
+                  {(matches || []).map((m: MatchedItem) => {
+                    const lostData = parseItemData(m.lost_item_data);
+                    const foundData = parseItemData(m.found_item_data);
+                    return (
+                      <motion.div key={m.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card glass-card-hover rounded-2xl p-4 sm:p-5 transition-all duration-200 flex flex-col justify-between">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Sparkles size={15} className="text-neon" />
+                          <span className="text-xs font-bold text-neon uppercase tracking-widest">Score: {Number(m.match_score || 0).toFixed(0)}%</span>
+                          <span className="ml-auto text-[10px] sm:text-xs text-muted-foreground">Expires: {m.expires_at ? new Date(m.expires_at).toLocaleDateString('en-IN') : 'N/A'}</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                          {[
+                            { label: 'Lost Item', data: lostData, color: 'text-coral', name: lostData.owner_name || 'N/A', role: 'Owner' },
+                            { label: 'Found Item', data: foundData, color: 'text-neon', name: foundData.finder_name || 'N/A', role: 'Finder' },
+                          ].map(side => (
+                            <div key={side.label} className="glass-card rounded-xl p-3.5 sm:p-4">
+                              <span className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${side.color}`}>{side.label}</span>
+                              <h4 className="font-bold text-sm sm:text-base text-white mb-2">{side.data.item_name || 'Unknown'}</h4>
+                              <div className="space-y-1 text-xs sm:text-sm text-muted-foreground">
+                                <p>Color: {side.data.color || 'N/A'}</p>
+                                {side.data.brand && <p>Brand: {side.data.brand}</p>}
+                                {side.data.location && <p>Location: {side.data.location}</p>}
+                                {side.data.remark && <p>Remark: {side.data.remark}</p>}
+                                <p className="font-semibold text-foreground mt-2">
+                                  {side.role}: {side.name}
+                                </p>
+                                <p>Phone: {side.data.phone || 'N/A'}</p>
+                              </div>
+                              {side.data.image_url && <img src={side.data.image_url} alt="" className="w-full h-24 sm:h-28 object-cover rounded-lg mt-2" />}
                             </div>
-                            {side.data.image_url && <img src={side.data.image_url} alt="" className="w-full h-24 sm:h-28 object-cover rounded-lg mt-2" />}
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  ))}
+                          ))}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               )
             ) : viewedItems.length === 0 ? (
