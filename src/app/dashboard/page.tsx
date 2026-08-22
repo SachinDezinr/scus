@@ -1,53 +1,16 @@
 'use client';
 
 import { useAuth } from '@/lib/auth-context';
-import { useEffect, useState } from 'react';
+import { useCampusData } from '@/lib/data-context';
 import Link from 'next/link';
 import {
   Search, BookOpen, Building2, ArrowRight,
   Shield, Bot
 } from 'lucide-react';
 
-interface StatsData {
-  complaintsCount: number;
-  lostCount: number;
-  foundCount: number;
-  resourcesCount: number;
-}
-
 export default function DashboardPage() {
-  const { user, authFetch } = useAuth();
-  const [stats, setStats] = useState<StatsData>({
-    complaintsCount: 0,
-    lostCount: 0,
-    foundCount: 0,
-    resourcesCount: 0,
-  });
-
-  useEffect(() => {
-    async function loadStats() {
-      try {
-        const [cRes, lRes, fRes, rRes] = await Promise.all([
-          authFetch('/api/complaints'),
-          authFetch('/api/lost-found/lost'),
-          authFetch('/api/lost-found/found'),
-          authFetch('/api/resources'),
-        ]);
-        const [cData, lData, fData, rData] = await Promise.all([
-          cRes.json(), lRes.json(), fRes.json(), rRes.json(),
-        ]);
-        setStats({
-          complaintsCount: (cData.complaints || []).length,
-          lostCount: (lData.items || []).length,
-          foundCount: (fData.items || []).length,
-          resourcesCount: (rData.resources || []).length,
-        });
-      } catch {
-        // quiet fallback
-      }
-    }
-    loadStats();
-  }, [authFetch]);
+  const { user } = useAuth();
+  const { stats, initialLoaded } = useCampusData();
 
   return (
     <div className="space-y-8">
@@ -85,7 +48,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Metrics Row with subtle glow & elevation on hover */}
+      {/* Metrics Row with instant cached data rendering */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {[
           { label: 'Active Complaints', value: stats.complaintsCount, sub: 'In pipeline' },
@@ -98,13 +61,19 @@ export default function DashboardPage() {
             className="glass-card glass-card-hover p-4 rounded-xl select-none transition-all duration-200"
           >
             <span className="text-[11px] font-mono uppercase text-muted-foreground block">{item.label}</span>
-            <p className="text-2xl font-bold text-white tracking-tight my-1">{item.value}</p>
+            <p className="text-2xl font-bold text-white tracking-tight my-1">
+              {!initialLoaded ? (
+                <span className="inline-block w-8 h-7 bg-white/10 rounded animate-pulse align-middle" />
+              ) : (
+                item.value
+              )}
+            </p>
             <span className="text-[11px] text-[#6b7280]">{item.sub}</span>
           </div>
         ))}
       </div>
 
-      {/* Primary Utility Modules Grid with subtle glow & elevation */}
+      {/* Primary Utility Modules Grid */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground font-mono">
