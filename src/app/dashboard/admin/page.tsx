@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/lib/auth-context';
-import { useCampusData } from '@/lib/data-context';
+import { useCampusData, Complaint } from '@/lib/data-context';
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -101,8 +101,8 @@ export default function AdminPage() {
     );
   }
 
-  const activeComplaints = complaints.filter(c => c.status !== 'resolved');
-  const resolvedComplaints = complaints.filter(c => c.status === 'resolved');
+  const activeComplaints = complaints.filter((c: Complaint) => c.status !== 'resolved');
+  const resolvedComplaints = complaints.filter((c: Complaint) => c.status === 'resolved');
 
   return (
     <div className="max-w-6xl mx-auto w-full space-y-5 sm:space-y-6">

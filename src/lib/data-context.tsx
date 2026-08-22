@@ -6,7 +6,7 @@ import { Complaint, LostItem, FoundItem, MatchedItem, Resource } from '@/types/a
 
 export type { Complaint, LostItem, FoundItem, MatchedItem, Resource };
 
-interface DataContextType {
+export interface DataContextType {
   complaints: Complaint[];
   lostItems: LostItem[];
   foundItems: FoundItem[];
@@ -35,7 +35,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [foundItems, setFoundItems] = useState<FoundItem[]>([]);
   const [matches, setMatches] = useState<MatchedItem[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
-  const [initialLoaded, setInitialLoaded] = useState(false);
+  const [initialLoaded, setInitialLoaded] = useState<boolean>(false);
 
   const refetchComplaints = useCallback(async () => {
     if (!user) return;
@@ -127,7 +127,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useCampusData() {
+export function useCampusData(): DataContextType {
   const ctx = useContext(DataContext);
   if (!ctx) throw new Error('useCampusData must be used within DataProvider');
   return ctx;

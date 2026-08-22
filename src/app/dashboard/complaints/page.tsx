@@ -96,11 +96,11 @@ export default function ComplaintsPage() {
   const isOwner = (c: Complaint) => user?.id === c.user_id;
   const isAdmin = user?.role === 'admin';
 
-  const activeComplaints = complaints.filter(c => c.status !== 'resolved');
-  const resolvedComplaints = complaints.filter(c => c.status === 'resolved');
+  const activeComplaints = complaints.filter((c: Complaint) => c.status !== 'resolved');
+  const resolvedComplaints = complaints.filter((c: Complaint) => c.status === 'resolved');
 
   const displayed = (() => {
-    if (viewTab === 'mine') return complaints.filter(c => c.user_id === user?.id && c.status !== 'resolved');
+    if (viewTab === 'mine') return complaints.filter((c: Complaint) => c.user_id === user?.id && c.status !== 'resolved');
     if (viewTab === 'resolved') return resolvedComplaints;
     return activeComplaints;
   })();
@@ -255,7 +255,7 @@ export default function ComplaintsPage() {
           <button onClick={() => setViewTab('mine')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${viewTab === 'mine' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
             <UserCheck size={12} /> Mine
-            <span className="ml-1 px-1.5 py-0.2 rounded-full bg-white/10 text-[10px]">{complaints.filter(c => c.user_id === user?.id && c.status !== 'resolved').length}</span>
+            <span className="ml-1 px-1.5 py-0.2 rounded-full bg-white/10 text-[10px]">{complaints.filter((c: Complaint) => c.user_id === user?.id && c.status !== 'resolved').length}</span>
           </button>
           <button onClick={() => setViewTab('resolved')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${viewTab === 'resolved' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
@@ -277,7 +277,7 @@ export default function ComplaintsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-          {displayed.map(c => {
+          {displayed.map((c: Complaint) => {
             const st = STATUS[c.status as keyof typeof STATUS] || STATUS.pending;
             const prio = PRIORITY[c.priority as keyof typeof PRIORITY] || PRIORITY.medium;
             const expanded = expandedId === c.id;
