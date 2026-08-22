@@ -30,6 +30,7 @@ export default function ResourcesPage() {
   const [showUpload, setShowUpload] = useState(false);
   const [courseFilter, setCourseFilter] = useState('');
   const [subjectFilter, setSubjectFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [editResource, setEditResource] = useState<Resource | null>(null);
   const [editSaving, setEditSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
@@ -116,8 +117,19 @@ export default function ResourcesPage() {
   const courses = [...new Set(resources.map(r => r.course_name))];
   const subjects = [...new Set(resources.map(r => r.subject_name))];
 
+  const filteredResources = resources.filter(res => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      res.subject_name.toLowerCase().includes(q) ||
+      res.course_name.toLowerCase().includes(q) ||
+      res.uploader_name.toLowerCase().includes(q) ||
+      (res.tips && res.tips.toLowerCase().includes(q))
+    );
+  });
+
   return (
-    <div className="w-full space-y-5">
+    <div className="w-full space-y-6">
       {/* Confirm Delete Modal */}
       <AnimatePresence>
         {confirmDelete && (
@@ -194,69 +206,85 @@ export default function ResourcesPage() {
       </AnimatePresence>
 
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="flex items-center gap-2 mb-1">
-          <BookOpen size={16} className="text-amber" />
-          <span className="text-[11px] font-semibold text-amber uppercase tracking-widest">Resources</span>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <BookOpen size={16} className="text-amber" />
+            <span className="text-[11px] font-semibold text-amber uppercase tracking-widest">Resources</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
+            Resource <span className="gradient-text">Exchange</span>
+          </h1>
+          <p className="text-muted-foreground mt-0.5 text-xs sm:text-sm">Share and download verified notes, PYQs, and semester study guides.</p>
         </div>
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-          Resource <span className="gradient-text">Exchange</span>
-        </h1>
-        <p className="text-muted-foreground mt-0.5 text-xs sm:text-sm">Share and download verified notes, PYQs, and semester study guides.</p>
-      </motion.div>
 
-      {/* Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
         <button
           onClick={() => setShowUpload(!showUpload)}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 ${
             showUpload ? 'bg-amber text-[#0a0a0f]' : 'glass-card text-amber hover:border-amber/30'
           }`}
         >
           <Upload size={14} />
           {showUpload ? 'Close Upload' : 'Upload Resource'}
         </button>
-      </div>
+      </motion.div>
 
-      {/* Upload Form */}
-      {showUpload && (
-        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden">
-          <div className="glass-card rounded-2xl p-4 sm:p-6 max-w-3xl border-amber/30">
-            <h2 className="text-sm sm:text-base font-bold mb-4 flex items-center gap-2 text-white">
-              <Upload size={16} className="text-amber" /> Upload Study Material
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-3.5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div><label className={labelCls}>Your Name *</label><input name="uploader_name" required className={inputCls} placeholder="e.g. Sachin Panwar" /></div>
-                <div><label className={labelCls}>Course Name *</label><input name="course_name" required className={inputCls} placeholder="e.g. B.Tech CSE" /></div>
-                <div><label className={labelCls}>Subject Name *</label><input name="subject_name" required className={inputCls} placeholder="e.g. Data Structures" /></div>
-                <div><label className={labelCls}>PDF File * (Max 5MB)</label><input type="file" name="file" accept=".pdf" required className={inputCls} /></div>
-              </div>
-              <div><label className={labelCls}>Tips for Juniors</label><textarea name="tips" rows={2} className={inputCls} placeholder="Any advice for studying this subject? (optional)" /></div>
-              <button type="submit" disabled={submitting} className="w-full py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-amber to-[#f59e0b] text-[#0a0a0f] font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 disabled:opacity-50">
-                {submitting ? <div className="w-4 h-4 border-2 border-[#0a0a0f] border-t-transparent rounded-full animate-spin" /> : <><Upload size={16} /> Upload Resource</>}
-              </button>
-            </form>
-          </div>
-        </motion.div>
-      )}
+      {/* Upload Form - Centered on PC / Laptops */}
+      <AnimatePresence>
+        {showUpload && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+            <div className="glass-card rounded-2xl p-5 sm:p-7 max-w-2xl mx-auto border border-amber/30 shadow-xl">
+              <h2 className="text-sm sm:text-base font-bold mb-4 flex items-center justify-center gap-2 text-white text-center">
+                <Upload size={16} className="text-amber" /> Upload Study Material
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div><label className={labelCls}>Your Name *</label><input name="uploader_name" required className={inputCls} placeholder="e.g. Sachin Panwar" /></div>
+                  <div><label className={labelCls}>Course Name *</label><input name="course_name" required className={inputCls} placeholder="e.g. B.Tech CSE" /></div>
+                  <div className="sm:col-span-2"><label className={labelCls}>Subject Name *</label><input name="subject_name" required className={inputCls} placeholder="e.g. Data Structures" /></div>
+                  <div className="sm:col-span-2"><label className={labelCls}>PDF File * (Max 5MB)</label><input type="file" name="file" accept=".pdf" required className={inputCls} /></div>
+                </div>
+                <div><label className={labelCls}>Tips for Juniors</label><textarea name="tips" rows={2} className={inputCls} placeholder="Any advice for studying this subject? (optional)" /></div>
+                <button type="submit" disabled={submitting} className="w-full py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-amber to-[#f59e0b] text-[#0a0a0f] font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 disabled:opacity-50">
+                  {submitting ? <div className="w-4 h-4 border-2 border-[#0a0a0f] border-t-transparent rounded-full animate-spin" /> : <><Upload size={16} /> Upload Resource</>}
+                </button>
+              </form>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Filters */}
-      <div className="glass-card rounded-2xl p-4">
-        <div className="flex items-center gap-2 mb-3">
+      {/* Filters & Search - Centered on PC / Desktop / Laptop */}
+      <div className="glass-card rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center">
+        <div className="flex items-center justify-center gap-2 mb-3.5 text-center">
           <Filter size={14} className="text-primary" />
-          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Search & Filters</span>
+          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Search & Filter Material</span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+
+        <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+          {/* Keyword instant search */}
+          <div className="relative w-full">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+              <Search size={14} />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search by topic, subject or author..."
+              className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-[#14161f] border border-border text-xs sm:text-sm text-foreground focus:outline-none focus:border-primary placeholder:text-muted-foreground/50"
+            />
+          </div>
+
           {/* Course filter */}
-          <div className="relative">
+          <div className="relative w-full">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground z-10">
-              <Search size={15} />
+              <Filter size={14} />
             </div>
             <select
               value={courseFilter}
               onChange={e => setCourseFilter(e.target.value)}
-              className="w-full pl-10 pr-9 py-2.5 sm:py-3 rounded-xl bg-[#14161f] border border-border text-xs sm:text-sm text-foreground focus:outline-none focus:border-primary appearance-none cursor-pointer"
+              className="w-full pl-9 pr-8 py-2.5 rounded-xl bg-[#14161f] border border-border text-xs sm:text-sm text-foreground focus:outline-none focus:border-primary appearance-none cursor-pointer"
             >
               <option value="">All Courses</option>
               {courses.map(c => <option key={c} value={c}>{c}</option>)}
@@ -267,14 +295,14 @@ export default function ResourcesPage() {
           </div>
 
           {/* Subject filter */}
-          <div className="relative">
+          <div className="relative w-full">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground z-10">
-              <Search size={15} />
+              <BookOpen size={14} />
             </div>
             <select
               value={subjectFilter}
               onChange={e => setSubjectFilter(e.target.value)}
-              className="w-full pl-10 pr-9 py-2.5 sm:py-3 rounded-xl bg-[#14161f] border border-border text-xs sm:text-sm text-foreground focus:outline-none focus:border-primary appearance-none cursor-pointer"
+              className="w-full pl-9 pr-8 py-2.5 rounded-xl bg-[#14161f] border border-border text-xs sm:text-sm text-foreground focus:outline-none focus:border-primary appearance-none cursor-pointer"
             >
               <option value="">All Subjects</option>
               {subjects.map(s => <option key={s} value={s}>{s}</option>)}
@@ -283,32 +311,32 @@ export default function ResourcesPage() {
               <ChevronDown size={14} />
             </div>
           </div>
-
-          {/* Clear button */}
-          {(courseFilter || subjectFilter) && (
-            <div className="flex items-center sm:col-span-2 lg:col-span-1">
-              <button
-                onClick={() => { setCourseFilter(''); setSubjectFilter(''); }}
-                className="text-xs font-semibold text-coral hover:text-coral/80 transition-colors py-2 px-1"
-              >
-                ✕ Clear all filters
-              </button>
-            </div>
-          )}
         </div>
+
+        {/* Clear button */}
+        {(courseFilter || subjectFilter || searchQuery) && (
+          <div className="flex items-center justify-center mt-3">
+            <button
+              onClick={() => { setCourseFilter(''); setSubjectFilter(''); setSearchQuery(''); }}
+              className="text-xs font-semibold text-coral hover:text-coral/80 transition-colors py-1 px-3 rounded-lg hover:bg-coral/10"
+            >
+              ✕ Clear all filters
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Resources Grid in Left/Right Multi-Column View */}
       {loading ? (
         <div className="flex justify-center py-16"><div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
-      ) : resources.length === 0 ? (
+      ) : filteredResources.length === 0 ? (
         <div className="glass-card rounded-2xl p-8 sm:p-12 text-center">
           <BookOpen size={36} className="mx-auto text-muted-foreground mb-3" />
-          <p className="text-xs sm:text-sm text-muted-foreground">No resources found. Be the first to upload!</p>
+          <p className="text-xs sm:text-sm text-muted-foreground">No matching resources found.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-          {resources.map(res => (
+          {filteredResources.map(res => (
             <motion.div key={res.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card glass-card-hover rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200">
               <div>
                 <div className="flex items-start justify-between mb-2.5">

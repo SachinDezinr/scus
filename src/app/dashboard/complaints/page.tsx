@@ -157,6 +157,166 @@ export default function ComplaintsPage() {
                 Delete <span className="text-foreground font-semibold">"{confirmDelete.name}"</span>?
               </p>
               <div className="flex gap-3">
+                <button onClick={() => setConfirmDelete(null)} className<dyad-write path="src/app/dashboard/complaints/page.tsx" description="Center-align the new complaint form on PC and desktop displays">
+'use client';
+
+import { useAuth } from '@/lib/auth-context';
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+import {
+  Building2, Plus, Camera, Clock, CheckCircle2,
+  AlertCircle, Loader2, MapPin, FileText, Sparkles,
+  Pencil, Trash2, Save, X, ChevronUp, Eye,
+  Users, UserCheck, ShieldAlert
+} from 'lucide-react';
+
+interface Complaint {
+  id: string;
+  item_name: string;
+  class_name: string;
+  department: string;
+  floor: string;
+  description: string;
+  photo_url?: string;
+  status: string;
+  priority?: string;
+  user_id: string;
+  created_at: string;
+}
+
+const STATUS = {
+  pending: { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)', icon: Clock },
+  'in progress': { color: '#3b82f6', bg: 'rgba(59,130,246,0.12)', icon: Loader2 },
+  resolved: { color: '#00f5d4', bg: 'rgba(0,245,212,0.12)', icon: CheckCircle2 },
+} as const;
+
+const PRIORITY = {
+  urgent: { label: 'Urgent', color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
+  high: { label: 'High', color: '#ff6b6b', bg: 'rgba(255,107,107,0.15)' },
+  medium: { label: 'Medium', color: '#fbbf24', bg: 'rgba(251,191,36,0.15)' },
+  low: { label: 'Low', color: '#00f5d4', bg: 'rgba(0,245,212,0.15)' },
+} as const;
+
+type ViewTab = 'all' | 'mine' | 'resolved';
+
+export default function ComplaintsPage() {
+  const { user, authFetch } = useAuth();
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [viewTab, setViewTab] = useState<ViewTab>('all');
+  const [editComplaint, setEditComplaint] = useState<Complaint | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+
+  const fetchComplaints = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await authFetch('/api/complaints');
+      const data = await res.json();
+      setComplaints(data.complaints || []);
+    } catch { /* ignore */ }
+    setLoading(false);
+  }, [authFetch]);
+
+  useEffect(() => { fetchComplaints(); }, [fetchComplaints]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const form = e.currentTarget;
+    try {
+      const res = await authFetch('/api/complaints', { method: 'POST', body: new FormData(form) });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error); setSubmitting(false); return; }
+      toast.success('Complaint submitted!');
+      form.reset();
+      setShowForm(false);
+      setViewTab('mine');
+      fetchComplaints();
+    } catch { toast.error('Something went wrong'); }
+    setSubmitting(false);
+  };
+
+  const updateStatus = async (id: string, status: string) => {
+    const res = await authFetch('/api/complaints', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status }),
+    });
+    if (res.ok) { 
+      toast.success(status === 'resolved' ? 'Complaint resolved!' : 'Status updated!'); 
+      fetchComplaints(); 
+    }
+    else toast.error('Failed to update');
+  };
+
+  const handleEditSave = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editComplaint) return;
+    setEditSaving(true);
+    const fd = new FormData(e.currentTarget);
+    const payload: Record<string, string> = { id: editComplaint.id };
+    fd.forEach((v, k) => { if (v) payload[k] = v as string; });
+    const res = await authFetch('/api/complaints', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) { toast.success('Updated!'); setEditComplaint(null); fetchComplaints(); }
+    else { const d = await res.json(); toast.error(d.error || 'Failed'); }
+    setEditSaving(false);
+  };
+
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    const res = await authFetch(`/api/complaints?id=${confirmDelete.id}`, { method: 'DELETE' });
+    if (res.ok) { toast.success('Deleted'); setConfirmDelete(null); fetchComplaints(); }
+    else toast.error('Failed to delete');
+  };
+
+  const isOwner = (c: Complaint) => user?.id === c.user_id;
+  const isAdmin = user?.role === 'admin';
+
+  const activeComplaints = complaints.filter(c => c.status !== 'resolved');
+  const resolvedComplaints = complaints.filter(c => c.status === 'resolved');
+
+  const displayed = (() => {
+    if (viewTab === 'mine') return complaints.filter(c => c.user_id === user?.id && c.status !== 'resolved');
+    if (viewTab === 'resolved') return resolvedComplaints;
+    return activeComplaints;
+  })();
+
+  const inp = "w-full px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl bg-secondary/50 border border-border text-xs md:text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-colors";
+  const lbl = "block text-[11px] font-semibold text-muted-foreground mb-1 uppercase tracking-wider";
+
+  return (
+    <div className="w-full space-y-5">
+
+      {/* ── Confirm Delete Modal ── */}
+      <AnimatePresence>
+        {confirmDelete && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs"
+            onClick={() => setConfirmDelete(null)}>
+            <motion.div initial={{ scale: 0.92 }} animate={{ scale: 1 }} exit={{ scale: 0.92 }}
+              className="glass-card rounded-2xl p-5 md:p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-coral/15 flex items-center justify-center shrink-0">
+                  <Trash2 size={18} className="text-coral" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm md:text-base text-white">Delete Complaint?</h3>
+                  <p className="text-xs text-muted-foreground">This action cannot be undone</p>
+                </div>
+              </div>
+              <p className="text-xs md:text-sm text-muted-foreground mb-5">
+                Delete <span className="text-foreground font-semibold">"{confirmDelete.name}"</span>?
+              </p>
+              <div className="flex gap-3">
                 <button onClick={() => setConfirmDelete(null)} className="flex-1 py-2.5 rounded-xl glass-card text-xs font-semibold">Cancel</button>
                 <button onClick={handleDelete} className="flex-1 py-2.5 rounded-xl bg-coral text-white text-xs font-semibold">Delete</button>
               </div>
@@ -209,49 +369,30 @@ export default function ComplaintsPage() {
       </AnimatePresence>
 
       {/* ── Header ── */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-5 md:mb-6">
-        <div className="flex items-center gap-2 mb-1">
-          <Building2 size={16} className="text-coral" />
-          <span className="text-[11px] font-semibold text-coral uppercase tracking-widest">Infrastructure</span>
-        </div>
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-          Infrastructure <span className="gradient-text">Complaints</span>
-        </h1>
-        <p className="text-muted-foreground mt-0.5 text-xs md:text-sm">Report broken infrastructure, assign priority, and track repair status.</p>
-      </motion.div>
-
-      {/* ── Top controls bar ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <div className="flex items-center gap-1 glass-card rounded-xl p-1 overflow-x-auto max-w-full">
-          <button onClick={() => setViewTab('all')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${viewTab === 'all' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
-            <Users size={12} /> Active
-            <span className="ml-1 px-1.5 py-0.2 rounded-full bg-white/10 text-[10px]">{activeComplaints.length}</span>
-          </button>
-          <button onClick={() => setViewTab('mine')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${viewTab === 'mine' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
-            <UserCheck size={12} /> Mine
-            <span className="ml-1 px-1.5 py-0.2 rounded-full bg-white/10 text-[10px]">{complaints.filter(c => c.user_id === user?.id && c.status !== 'resolved').length}</span>
-          </button>
-          <button onClick={() => setViewTab('resolved')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${viewTab === 'resolved' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
-            <CheckCircle2 size={12} /> Resolved
-            <span className="ml-1 px-1.5 py-0.2 rounded-full bg-white/10 text-[10px]">{resolvedComplaints.length}</span>
-          </button>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Building2 size={16} className="text-coral" />
+            <span className="text-[11px] font-semibold text-coral uppercase tracking-widest">Infrastructure</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
+            Infrastructure <span className="gradient-text">Complaints</span>
+          </h1>
+          <p className="text-muted-foreground mt-0.5 text-xs md:text-sm">Report broken infrastructure, assign priority, and track repair status.</p>
         </div>
 
         <button onClick={() => setShowForm(v => !v)}
-          className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 ${showForm ? 'bg-coral text-white' : 'glass-card text-coral hover:border-coral/30'}`}>
-          <Plus size={14} /> New Complaint
+          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 ${showForm ? 'bg-coral text-white' : 'glass-card text-coral hover:border-coral/30'}`}>
+          <Plus size={14} /> {showForm ? 'Close Form' : 'New Complaint'}
         </button>
-      </div>
+      </motion.div>
 
-      {/* ── Submit Form ── */}
+      {/* ── Submit Form (Centered on PC / Laptop Screens) ── */}
       <AnimatePresence>
         {showForm && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-6 overflow-hidden">
-            <div className="glass-card rounded-2xl p-4 md:p-6 max-w-3xl">
-              <h2 className="text-sm md:text-base font-bold mb-4 flex items-center gap-2 text-white">
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+            <div className="glass-card rounded-2xl p-5 sm:p-7 max-w-2xl mx-auto border border-coral/30 shadow-xl">
+              <h2 className="text-sm md:text-base font-bold mb-4 flex items-center justify-center gap-2 text-white text-center">
                 <AlertCircle size={16} className="text-coral" /> File New Complaint
               </h2>
               <form onSubmit={handleSubmit} className="space-y-3.5">
@@ -287,6 +428,27 @@ export default function ComplaintsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Top controls bar ── */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-1 glass-card rounded-xl p-1 overflow-x-auto max-w-full">
+          <button onClick={() => setViewTab('all')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${viewTab === 'all' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <Users size={12} /> Active
+            <span className="ml-1 px-1.5 py-0.2 rounded-full bg-white/10 text-[10px]">{activeComplaints.length}</span>
+          </button>
+          <button onClick={() => setViewTab('mine')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${viewTab === 'mine' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <UserCheck size={12} /> Mine
+            <span className="ml-1 px-1.5 py-0.2 rounded-full bg-white/10 text-[10px]">{complaints.filter(c => c.user_id === user?.id && c.status !== 'resolved').length}</span>
+          </button>
+          <button onClick={() => setViewTab('resolved')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${viewTab === 'resolved' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <CheckCircle2 size={12} /> Resolved
+            <span className="ml-1 px-1.5 py-0.2 rounded-full bg-white/10 text-[10px]">{resolvedComplaints.length}</span>
+          </button>
+        </div>
+      </div>
 
       {/* ── List in 2-Column Left-Right Grid on Big Screens ── */}
       {loading ? (
