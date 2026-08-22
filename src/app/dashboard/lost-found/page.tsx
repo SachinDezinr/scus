@@ -44,6 +44,7 @@ export default function LostFoundPage() {
   const [lostItems, setLostItems] = useState<Item[]>([]);
   const [foundItems, setFoundItems] = useState<Item[]>([]);
   const [matches, setMatches] = useState<MatchedItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [matchResult, setMatchResult] = useState<{ item: Item; score: number; type: string } | null>(null);
@@ -138,11 +139,23 @@ export default function LostFoundPage() {
   const myItems = allItems.filter(i => i.user_id === user?.id);
 
   const viewedItems = (() => {
-    if (viewTab === 'all') return allItems;
-    if (viewTab === 'mine') return myItems;
-    if (viewTab === 'lost') return lostItems.map(i => ({ ...i, _type: 'lost' as const }));
-    if (viewTab === 'found') return foundItems.map(i => ({ ...i, _type: 'found' as const }));
-    return [];
+    let base: (Item & { _type: 'lost' | 'found' })[] = [];
+    if (viewTab === 'all') base = allItems;
+    else if (viewTab === 'mine') base = myItems;
+    else if (viewTab === 'lost') base = lostItems.map(i => ({ ...i, _type: 'lost' as const }));
+    else if (viewTab === 'found') base = foundItems.map(i => ({ ...i, _type: 'found' as const }));
+
+    if (!searchQuery.trim()) return base;
+    const q = searchQuery.toLowerCase();
+    return base.filter(i => 
+      i.item_name.toLowerCase().includes(q) ||
+      i.color.toLowerCase().includes(q) ||
+      (i.brand && i.brand.toLowerCase().includes(q)) ||
+      (i.location && i.location.toLowerCase().includes(q)) ||
+      (i.remark && i.remark.toLowerCase().includes(q)) ||
+      (i.owner_name && i.owner_name.toLowerCase().includes(q)) ||
+      (i.finder_name && i.finder_name.toLowerCase().includes(q))
+    );
   })();
 
   const renderItemCard = (item: Item & { _type: 'lost' | 'found' }) => (
@@ -193,7 +206,7 @@ export default function LostFoundPage() {
   );
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-5">
       {/* Confirm Delete Modal */}
       <AnimatePresence>
         {confirmDelete && (
@@ -287,7 +300,7 @@ export default function LostFoundPage() {
       </AnimatePresence>
 
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-5 sm:mb-6">
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-2">
         <div className="flex items-center gap-2 mb-1">
           <Search size={16} className="text-neon" />
           <span className="text-[11px] font-semibold text-neon uppercase tracking-widest">Lost & Found</span>
@@ -298,28 +311,56 @@ export default function LostFoundPage() {
         <p className="text-muted-foreground mt-0.5 text-xs sm:text-sm">Report lost or found items. Our smart system matches them automatically.</p>
       </motion.div>
 
-      {/* Main action tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 mb-4 sm:mb-5">
-        {[
-          { id: 'view' as MainTab, label: 'Browse Items', icon: Eye },
-          { id: 'report-lost' as MainTab, label: 'Report Lost', icon: AlertTriangle },
-          { id: 'report-found' as MainTab, label: 'Report Found', icon: CheckCircle2 },
-        ].map(t => (
-          <button key={t.id} onClick={() => setMainTab(t.id)}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${mainTab === t.id ? 'bg-primary text-primary-foreground shadow-md' : 'glass-card text-muted-foreground hover:text-foreground'}`}>
-            <t.icon size={14} /> {t.label}
-          </button>
-        ))}
+      {/* Main action tabs & Right-Side Search Bar on Laptops */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {[
+            { id: 'view' as MainTab, label: 'Browse Items', icon: Eye },
+            { id: 'report-lost' as MainTab, label: 'Report Lost', icon: AlertTriangle },
+            { id: 'report-found' as MainTab, label: 'Report Found', icon: CheckCircle2 },
+          ].map(t => (
+            <button key={t.id} onClick={() => setMainTab(t.id)}
+              className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${mainTab === t.id ? 'bg-primary text-primary-foreground shadow-md' : 'glass-card text-muted-foreground hover:text-foreground'}`}>
+              <t.icon size={14} /> {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Right side search bar on desktop/laptop */}
+        {mainTab === 'view' && viewTab !== 'matched' && (
+          <div className="relative w-full sm:w-72 shrink-0">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+              <Search size={14} />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search items by name, color..."
+              className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-[#14161f] border border-border text-xs sm:text-sm text-foreground focus:outline-none focus:border-primary placeholder:text-muted-foreground/50 shadow-inner"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-white"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Content */}
       <AnimatePresence mode="wait">
 
-        {/* Report Lost */}
+        {/* Report Lost - Centered on PC */}
         {mainTab === 'report-lost' && (
           <motion.div key="report-lost" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <div className="glass-card rounded-2xl p-4 sm:p-6 max-w-2xl">
-              <h2 className="text-sm sm:text-base font-bold mb-4 flex items-center gap-2 text-white"><AlertTriangle size={16} className="text-coral" /> Report Lost Item</h2>
+            <div className="glass-card rounded-2xl p-5 sm:p-7 max-w-2xl mx-auto border border-coral/30 shadow-xl">
+              <h2 className="text-sm sm:text-base font-bold mb-4 flex items-center justify-center gap-2 text-white text-center">
+                <AlertTriangle size={16} className="text-coral" /> Report Lost Item
+              </h2>
               <form onSubmit={handleLostSubmit} className="space-y-3.5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div><label className={lbl}>Item Name *</label><input name="item_name" required className={inp} placeholder="e.g. iPhone 15" /></div>
@@ -340,11 +381,13 @@ export default function LostFoundPage() {
           </motion.div>
         )}
 
-        {/* Report Found */}
+        {/* Report Found - Centered on PC */}
         {mainTab === 'report-found' && (
           <motion.div key="report-found" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <div className="glass-card rounded-2xl p-4 sm:p-6 max-w-2xl">
-              <h2 className="text-sm sm:text-base font-bold mb-4 flex items-center gap-2 text-white"><CheckCircle2 size={16} className="text-neon" /> Report Found Item</h2>
+            <div className="glass-card rounded-2xl p-5 sm:p-7 max-w-2xl mx-auto border border-neon/30 shadow-xl">
+              <h2 className="text-sm sm:text-base font-bold mb-4 flex items-center justify-center gap-2 text-white text-center">
+                <CheckCircle2 size={16} className="text-neon" /> Report Found Item
+              </h2>
               <form onSubmit={handleFoundSubmit} className="space-y-3.5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div><label className={lbl}>Item Name *</label><input name="item_name" required className={inp} placeholder="e.g. Water Bottle" /></div>
@@ -367,9 +410,9 @@ export default function LostFoundPage() {
 
         {/* Browse */}
         {mainTab === 'view' && (
-          <motion.div key="view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div key="view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
             {/* Sub-tabs */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-4 sm:mb-5">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
               {([
                 { id: 'all', label: 'All', count: allItems.length, icon: Users },
                 { id: 'mine', label: 'Mine', count: myItems.length, icon: UserCheck },
@@ -428,7 +471,9 @@ export default function LostFoundPage() {
             ) : viewedItems.length === 0 ? (
               <div className="glass-card rounded-2xl p-8 sm:p-12 text-center">
                 <Search size={36} className="mx-auto text-muted-foreground mb-3" />
-                <p className="text-xs sm:text-sm text-muted-foreground">{viewTab === 'mine' ? "You haven't reported any items." : 'No items found.'}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {searchQuery ? `No items found matching "${searchQuery}".` : viewTab === 'mine' ? "You haven't reported any items." : 'No items found.'}
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
