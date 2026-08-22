@@ -88,10 +88,10 @@ export default function ResourcesPage() {
   const inputCls = "w-full px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-[#14161f] border border-border text-xs sm:text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-colors text-foreground";
   const labelCls = "block text-[11px] font-semibold text-muted-foreground mb-1 uppercase tracking-wider";
 
-  const courses: string[] = Array.from(new Set(resources.map((r: Resource) => r.course_name)));
-  const subjects: string[] = Array.from(new Set(resources.map((r: Resource) => r.subject_name)));
+  const courses = [...new Set(resources.map(r => r.course_name))];
+  const subjects = [...new Set(resources.map(r => r.subject_name))];
 
-  const filteredResources = resources.filter((res: Resource) => {
+  const filteredResources = resources.filter(res => {
     if (courseFilter && res.course_name !== courseFilter) return false;
     if (subjectFilter && res.subject_name !== subjectFilter) return false;
     if (!searchQuery.trim()) return true;
@@ -263,7 +263,7 @@ export default function ResourcesPage() {
               className="w-full pl-9 pr-8 py-2.5 rounded-xl bg-[#14161f] border border-border text-xs sm:text-sm text-foreground focus:outline-none focus:border-primary appearance-none cursor-pointer"
             >
               <option value="">All Courses</option>
-              {courses.map((c: string) => <option key={c} value={c}>{c}</option>)}
+              {courses.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-muted-foreground">
               <ChevronDown size={14} />
@@ -281,7 +281,7 @@ export default function ResourcesPage() {
               className="w-full pl-9 pr-8 py-2.5 rounded-xl bg-[#14161f] border border-border text-xs sm:text-sm text-foreground focus:outline-none focus:border-primary appearance-none cursor-pointer"
             >
               <option value="">All Subjects</option>
-              {subjects.map((s: string) => <option key={s} value={s}>{s}</option>)}
+              {subjects.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-muted-foreground">
               <ChevronDown size={14} />
@@ -312,7 +312,7 @@ export default function ResourcesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-          {filteredResources.map((res: Resource) => (
+          {filteredResources.map(res => (
             <motion.div key={res.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card glass-card-hover rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200">
               <div>
                 <div className="flex items-start justify-between mb-2.5">

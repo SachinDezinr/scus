@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Trash2, Tag, Package, MapPin, User, Phone, FileText } from 'lucide-react';
-import { LostItem } from '@/types/admin';
+import { LostItem } from '../../types/admin';
 
 interface AdminLostItemsTabProps {
   items: LostItem[];

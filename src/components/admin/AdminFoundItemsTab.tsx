@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Package, Trash2, Tag, MapPin, User, Phone, FileText } from 'lucide-react';
-import { FoundItem } from '@/types/admin';
+import { FoundItem } from '../../types/admin';
 
 interface AdminFoundItemsTabProps {
   items: FoundItem[];

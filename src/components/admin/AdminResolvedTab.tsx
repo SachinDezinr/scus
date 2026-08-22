@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, MapPin, Trash2 } from 'lucide-react';
-import { Complaint } from '@/types/admin';
+import { Complaint } from '../../types/admin';
 
 interface AdminResolvedTabProps {
   complaints: Complaint[];

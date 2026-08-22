@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Building2, CheckCircle2, AlertTriangle, BookOpen, Clock } from 'lucide-react';
-import { Complaint } from '@/types/admin';
+import { Complaint } from '../../types/admin';
 
 interface AdminOverviewTabProps {
   complaints: Complaint[];

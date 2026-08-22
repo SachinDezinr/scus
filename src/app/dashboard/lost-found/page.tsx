@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/lib/auth-context';
-import { useCampusData, LostItem, FoundItem, MatchedItem } from '@/lib/data-context';
+import { useCampusData, LostItem, FoundItem } from '@/lib/data-context';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -91,8 +91,8 @@ export default function LostFoundPage() {
   const lbl = "block text-[11px] font-semibold text-muted-foreground mb-1 uppercase tracking-wider";
 
   const allItems: AnyItem[] = [
-    ...lostItems.map((i: LostItem) => ({ ...i, _type: 'lost' as const })),
-    ...foundItems.map((i: FoundItem) => ({ ...i, _type: 'found' as const })),
+    ...lostItems.map(i => ({ ...i, _type: 'lost' as const })),
+    ...foundItems.map(i => ({ ...i, _type: 'found' as const })),
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const myItems = allItems.filter(i => i.user_id === user?.id);
@@ -101,8 +101,8 @@ export default function LostFoundPage() {
     let base: AnyItem[] = [];
     if (viewTab === 'all') base = allItems;
     else if (viewTab === 'mine') base = myItems;
-    else if (viewTab === 'lost') base = lostItems.map((i: LostItem) => ({ ...i, _type: 'lost' as const }));
-    else if (viewTab === 'found') base = foundItems.map((i: FoundItem) => ({ ...i, _type: 'found' as const }));
+    else if (viewTab === 'lost') base = lostItems.map(i => ({ ...i, _type: 'lost' as const }));
+    else if (viewTab === 'found') base = foundItems.map(i => ({ ...i, _type: 'found' as const }));
 
     if (!searchQuery.trim()) return base;
     const q = searchQuery.toLowerCase();
@@ -399,7 +399,7 @@ export default function LostFoundPage() {
                 <div className="glass-card rounded-2xl p-8 sm:p-12 text-center"><Sparkles size={36} className="mx-auto text-muted-foreground mb-3" /><p className="text-xs sm:text-sm text-muted-foreground">No matched items yet.</p></div>
               ) : (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                  {matches.map((m: MatchedItem) => (
+                  {matches.map(m => (
                     <motion.div key={m.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card glass-card-hover rounded-2xl p-4 sm:p-5 transition-all duration-200 flex flex-col justify-between">
                       <div className="flex items-center gap-2 mb-3">
                         <Sparkles size={15} className="text-neon" />
@@ -441,7 +441,7 @@ export default function LostFoundPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-                {viewedItems.map((item: AnyItem) => renderItemCard(item))}
+                {viewedItems.map(item => renderItemCard(item))}
               </div>
             )}
           </motion.div>

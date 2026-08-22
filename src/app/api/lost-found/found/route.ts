@@ -1,7 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql, ensureTablesExist } from '@/lib/db';
 import { getTokenFromRequest } from '@/lib/auth';
-import { computeMatchScore } from '@/lib/matching';
+
+function computeMatchScore(lost: Record<string, string | null>, found: Record<string, string | null>): number {
+  let score = 0;
+  const maxScore = 100;
+
+  if (lost.brand && found.brand && lost.brand.toLowerCase() === found.brand.toLowerCase()) score += 40;
+  if (lost.item_name && found.item_name) {
+    const lostName = lost.item_name.toLowerCase();
+    const foundName = found.item_name.toLowerCase();
+    if (lostName === foundName) score += 30;
+    else if (lostName.includes(foundName) || foundName.includes(lostName)) score += 20;
+  }
+  if (lost.color && found.color && lost.color.toLowerCase() === found.color.toLowerCase()) score += 20;
+  if (lost.location && found.location) {
+    const lostLoc = lost.location.toLowerCase();
+    const foundLoc = found.location.toLowerCase();
+    if (lostLoc === foundLoc) score += 10;
+    else if (lostLoc.includes(foundLoc) || foundLoc.includes(lostLoc)) score += 5;
+  }
+  return (score / maxScore) * 100;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -50,7 +70,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (bestMatch) {
-      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       await sql`
         INSERT INTO matched_items (lost_item_id, found_item_id, match_score, lost_item_data, found_item_data, expires_at)
         VALUES (${bestMatch.id}::uuid, ${foundItem.id}::uuid, ${bestScore}, ${JSON.stringify(bestMatch)}::jsonb, ${JSON.stringify(foundItem)}::jsonb, ${expiresAt}::timestamptz)
