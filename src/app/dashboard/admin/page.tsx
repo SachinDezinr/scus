@@ -1,13 +1,14 @@
 'use client';
 
 import { useAuth } from '@/lib/auth-context';
-import { useState, useEffect, useCallback } from 'react';
+import { useCampusData } from '@/lib/data-context';
+import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { Shield, Clock, Loader2, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import { Complaint, LostItem, FoundItem, Resource, AdminTabType } from '@/types/admin';
+import { AdminTabType } from '@/types/admin';
 import {
   AdminHeader,
   AdminTabs,
@@ -35,13 +36,19 @@ const priorityConfig: Record<string, { label: string; color: string; bg: string 
 
 export default function AdminPage() {
   const { user, authFetch } = useAuth();
+  const {
+    complaints,
+    lostItems,
+    foundItems,
+    resources,
+    initialLoaded,
+    refetchComplaints,
+    refetchLostFound,
+    refetchResources,
+  } = useCampusData();
+
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<AdminTabType>('overview');
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
-  const [lostItems, setLostItems] = useState<LostItem[]>([]);
-  const [foundItems, setFoundItems] = useState<FoundItem[]>([]);
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [loading, setLoading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; type: string; name: string } | null>(null);
 
   useEffect(() => {
@@ -49,29 +56,6 @@ export default function AdminPage() {
       router.push('/dashboard');
     }
   }, [user, router]);
-
-  const fetchAll = useCallback(async () => {
-    if (!user || user.role !== 'admin') return;
-    setLoading(true);
-    try {
-      const [cRes, lRes, fRes, rRes] = await Promise.all([
-        authFetch('/api/complaints'),
-        authFetch('/api/lost-found/lost'),
-        authFetch('/api/lost-found/found'),
-        authFetch('/api/resources'),
-      ]);
-      const [cData, lData, fData, rData] = await Promise.all([
-        cRes.json(), lRes.json(), fRes.json(), rRes.json(),
-      ]);
-      setComplaints(cData.complaints || []);
-      setLostItems(lData.items || []);
-      setFoundItems(fData.items || []);
-      setResources(rData.resources || []);
-    } catch { /* ignore */ }
-    setLoading(false);
-  }, [authFetch, user]);
-
-  useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const updateComplaintStatus = async (id: string, status: string) => {
     const res = await authFetch('/api/complaints', {
@@ -81,7 +65,7 @@ export default function AdminPage() {
     });
     if (res.ok) { 
       toast.success(status === 'resolved' ? 'Complaint resolved' : 'Status updated'); 
-      fetchAll(); 
+      refetchComplaints(); 
     }
     else toast.error('Failed to update');
   };
@@ -99,7 +83,9 @@ export default function AdminPage() {
     if (res.ok) {
       toast.success('Deleted successfully');
       setConfirmDelete(null);
-      fetchAll();
+      if (type === 'complaint') refetchComplaints();
+      else if (type === 'lost' || type === 'found') refetchLostFound();
+      else if (type === 'resource') refetchResources();
     } else toast.error('Failed to delete');
   };
 
@@ -140,7 +126,7 @@ export default function AdminPage() {
         }}
       />
 
-      {loading ? (
+      {!initialLoaded ? (
         <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
       ) : (
         <AnimatePresence mode="wait">

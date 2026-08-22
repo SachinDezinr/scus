@@ -1,7 +1,8 @@
 'use client';
 
 import { useAuth } from '@/lib/auth-context';
-import { useState, useEffect, useCallback } from 'react';
+import { useCampusData, LostItem, FoundItem } from '@/lib/data-context';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -13,62 +14,20 @@ import {
 type MainTab = 'report-lost' | 'report-found' | 'view';
 type ViewTab = 'all' | 'mine' | 'lost' | 'found' | 'matched';
 
-interface Item {
-  id: string;
-  item_name: string;
-  color: string;
-  brand?: string;
-  location?: string;
-  remark?: string;
-  owner_name?: string;
-  finder_name?: string;
-  phone: string;
-  image_url?: string;
-  user_id: string;
-  created_at: string;
-}
-
-interface MatchedItem {
-  id: string;
-  match_score: number;
-  lost_item_data: Item;
-  found_item_data: Item;
-  expires_at: string;
-  created_at: string;
-}
+type AnyItem = (LostItem | FoundItem) & { _type: 'lost' | 'found' };
 
 export default function LostFoundPage() {
   const { user, authFetch } = useAuth();
+  const { lostItems, foundItems, matches, initialLoaded, refetchLostFound } = useCampusData();
+
   const [mainTab, setMainTab] = useState<MainTab>('view');
   const [viewTab, setViewTab] = useState<ViewTab>('all');
-  const [lostItems, setLostItems] = useState<Item[]>([]);
-  const [foundItems, setFoundItems] = useState<Item[]>([]);
-  const [matches, setMatches] = useState<MatchedItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [matchResult, setMatchResult] = useState<{ item: Item; score: number; type: string } | null>(null);
-  const [editItem, setEditItem] = useState<{ item: Item; type: 'lost' | 'found' } | null>(null);
+  const [matchResult, setMatchResult] = useState<{ item: LostItem | FoundItem; score: number; type: string } | null>(null);
+  const [editItem, setEditItem] = useState<{ item: LostItem | FoundItem; type: 'lost' | 'found' } | null>(null);
   const [editSaving, setEditSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; type: 'lost' | 'found'; name: string } | null>(null);
-
-  const fetchAll = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [lR, fR, mR] = await Promise.all([
-        authFetch('/api/lost-found/lost'),
-        authFetch('/api/lost-found/found'),
-        authFetch('/api/lost-found/matches'),
-      ]);
-      const [lD, fD, mD] = await Promise.all([lR.json(), fR.json(), mR.json()]);
-      setLostItems(lD.items || []);
-      setFoundItems(fD.items || []);
-      setMatches(mD.matches || []);
-    } catch { /* ignore */ }
-    setLoading(false);
-  }, [authFetch]);
-
-  useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const handleLostSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -82,7 +41,7 @@ export default function LostFoundPage() {
       form.reset();
       if (data.match) setMatchResult({ item: data.match.found, score: data.match.score, type: 'found' });
       setMainTab('view'); setViewTab('mine');
-      fetchAll();
+      refetchLostFound();
     } catch { toast.error('Something went wrong'); }
     setSubmitting(false);
   };
@@ -99,7 +58,7 @@ export default function LostFoundPage() {
       form.reset();
       if (data.match) setMatchResult({ item: data.match.lost, score: data.match.score, type: 'lost' });
       setMainTab('view'); setViewTab('mine');
-      fetchAll();
+      refetchLostFound();
     } catch { toast.error('Something went wrong'); }
     setSubmitting(false);
   };
@@ -113,7 +72,7 @@ export default function LostFoundPage() {
     fd.forEach((v, k) => { payload[k] = v as string; });
     const ep = editItem.type === 'lost' ? '/api/lost-found/lost' : '/api/lost-found/found';
     const res = await authFetch(ep, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    if (res.ok) { toast.success('Updated!'); setEditItem(null); fetchAll(); }
+    if (res.ok) { toast.success('Updated!'); setEditItem(null); refetchLostFound(); }
     else { const d = await res.json(); toast.error(d.error || 'Failed'); }
     setEditSaving(false);
   };
@@ -122,16 +81,16 @@ export default function LostFoundPage() {
     if (!confirmDelete) return;
     const ep = confirmDelete.type === 'lost' ? `/api/lost-found/lost?id=${confirmDelete.id}` : `/api/lost-found/found?id=${confirmDelete.id}`;
     const res = await authFetch(ep, { method: 'DELETE' });
-    if (res.ok) { toast.success('Deleted'); setConfirmDelete(null); fetchAll(); }
+    if (res.ok) { toast.success('Deleted'); setConfirmDelete(null); refetchLostFound(); }
     else toast.error('Failed to delete');
   };
 
-  const isOwner = (item: Item) => user?.id === item.user_id;
+  const isOwner = (item: LostItem | FoundItem) => user?.id === item.user_id;
 
   const inp = "w-full px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl bg-secondary/50 border border-border text-xs md:text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-colors";
   const lbl = "block text-[11px] font-semibold text-muted-foreground mb-1 uppercase tracking-wider";
 
-  const allItems = [
+  const allItems: AnyItem[] = [
     ...lostItems.map(i => ({ ...i, _type: 'lost' as const })),
     ...foundItems.map(i => ({ ...i, _type: 'found' as const })),
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -139,7 +98,7 @@ export default function LostFoundPage() {
   const myItems = allItems.filter(i => i.user_id === user?.id);
 
   const viewedItems = (() => {
-    let base: (Item & { _type: 'lost' | 'found' })[] = [];
+    let base: AnyItem[] = [];
     if (viewTab === 'all') base = allItems;
     else if (viewTab === 'mine') base = myItems;
     else if (viewTab === 'lost') base = lostItems.map(i => ({ ...i, _type: 'lost' as const }));
@@ -147,63 +106,68 @@ export default function LostFoundPage() {
 
     if (!searchQuery.trim()) return base;
     const q = searchQuery.toLowerCase();
-    return base.filter(i => 
-      i.item_name.toLowerCase().includes(q) ||
-      i.color.toLowerCase().includes(q) ||
-      (i.brand && i.brand.toLowerCase().includes(q)) ||
-      (i.location && i.location.toLowerCase().includes(q)) ||
-      (i.remark && i.remark.toLowerCase().includes(q)) ||
-      (i.owner_name && i.owner_name.toLowerCase().includes(q)) ||
-      (i.finder_name && i.finder_name.toLowerCase().includes(q))
-    );
+    return base.filter(i => {
+      const personName = 'owner_name' in i ? i.owner_name : 'finder_name' in i ? i.finder_name : '';
+      return (
+        i.item_name.toLowerCase().includes(q) ||
+        i.color.toLowerCase().includes(q) ||
+        (i.brand && i.brand.toLowerCase().includes(q)) ||
+        (i.location && i.location.toLowerCase().includes(q)) ||
+        (i.remark && i.remark.toLowerCase().includes(q)) ||
+        (personName && personName.toLowerCase().includes(q))
+      );
+    });
   })();
 
-  const renderItemCard = (item: Item & { _type: 'lost' | 'found' }) => (
-    <motion.div key={item.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-      className="glass-card glass-card-hover rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-200">
-      {item.image_url && (
-        <div className="h-40 sm:h-44 overflow-hidden shrink-0">
-          <img src={item.image_url} alt={item.item_name} className="w-full h-full object-cover" />
-        </div>
-      )}
-      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
-        <div>
-          <div className="flex items-center justify-between mb-3 gap-2">
-            <h3 className="font-bold text-sm sm:text-base truncate flex-1 text-white">{item.item_name}</h3>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 sm:py-1 rounded-full ${item._type === 'lost' ? 'bg-coral/15 text-coral' : 'bg-neon/15 text-neon'}`}>
-                {item._type}
-              </span>
-              {isOwner(item) && (
-                <>
-                  <button onClick={() => setEditItem({ item, type: item._type })}
-                    className="p-1 sm:p-1.5 rounded-lg glass-card text-muted-foreground hover:text-primary transition-colors">
-                    <Pencil size={13} />
-                  </button>
-                  <button onClick={() => setConfirmDelete({ id: item.id, type: item._type, name: item.item_name })}
-                    className="p-1 sm:p-1.5 rounded-lg glass-card text-muted-foreground hover:text-coral transition-colors">
-                    <Trash2 size={13} />
-                  </button>
-                </>
-              )}
+  const renderItemCard = (item: AnyItem) => {
+    const personName = 'owner_name' in item ? item.owner_name : 'finder_name' in item ? item.finder_name : '';
+    return (
+      <motion.div key={item.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+        className="glass-card glass-card-hover rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-200">
+        {item.image_url && (
+          <div className="h-40 sm:h-44 overflow-hidden shrink-0">
+            <img src={item.image_url} alt={item.item_name} className="w-full h-full object-cover" />
+          </div>
+        )}
+        <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-3 gap-2">
+              <h3 className="font-bold text-sm sm:text-base truncate flex-1 text-white">{item.item_name}</h3>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 sm:py-1 rounded-full ${item._type === 'lost' ? 'bg-coral/15 text-coral' : 'bg-neon/15 text-neon'}`}>
+                  {item._type}
+                </span>
+                {isOwner(item) && (
+                  <>
+                    <button onClick={() => setEditItem({ item, type: item._type })}
+                      className="p-1 sm:p-1.5 rounded-lg glass-card text-muted-foreground hover:text-primary transition-colors">
+                      <Pencil size={13} />
+                    </button>
+                    <button onClick={() => setConfirmDelete({ id: item.id, type: item._type, name: item.item_name })}
+                      className="p-1 sm:p-1.5 rounded-lg glass-card text-muted-foreground hover:text-coral transition-colors">
+                      <Trash2 size={13} />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="space-y-1.5 text-xs sm:text-sm text-muted-foreground">
+              <div className="flex items-center gap-2"><Tag size={13} className="text-primary shrink-0" /><span className="truncate">Color: {item.color}</span></div>
+              {item.brand && <div className="flex items-center gap-2"><Package size={13} className="text-primary shrink-0" /><span className="truncate">Brand: {item.brand}</span></div>}
+              {item.location && <div className="flex items-center gap-2"><MapPin size={13} className="text-primary shrink-0" /><span className="truncate">{item.location}</span></div>}
+              {item.remark && <div className="flex items-start gap-2"><MessageSquare size={13} className="text-primary shrink-0 mt-0.5" /><span className="line-clamp-2">{item.remark}</span></div>}
+              <div className="flex items-center gap-2"><User size={13} className="text-primary shrink-0" /><span className="truncate">{personName}</span></div>
+              <div className="flex items-center gap-2"><Phone size={13} className="text-primary shrink-0" /><span className="truncate">{item.phone}</span></div>
             </div>
           </div>
-          <div className="space-y-1.5 text-xs sm:text-sm text-muted-foreground">
-            <div className="flex items-center gap-2"><Tag size={13} className="text-primary shrink-0" /><span className="truncate">Color: {item.color}</span></div>
-            {item.brand && <div className="flex items-center gap-2"><Package size={13} className="text-primary shrink-0" /><span className="truncate">Brand: {item.brand}</span></div>}
-            {item.location && <div className="flex items-center gap-2"><MapPin size={13} className="text-primary shrink-0" /><span className="truncate">{item.location}</span></div>}
-            {item.remark && <div className="flex items-start gap-2"><MessageSquare size={13} className="text-primary shrink-0 mt-0.5" /><span className="line-clamp-2">{item.remark}</span></div>}
-            <div className="flex items-center gap-2"><User size={13} className="text-primary shrink-0" /><span className="truncate">{item.owner_name || item.finder_name}</span></div>
-            <div className="flex items-center gap-2"><Phone size={13} className="text-primary shrink-0" /><span className="truncate">{item.phone}</span></div>
+          <div className="flex items-center gap-2 text-muted-foreground/70 mt-3 pt-2.5 border-t border-[#1c1f2b]">
+            <Clock size={12} className="shrink-0" />
+            <span className="text-[10px]">{new Date(item.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground/70 mt-3 pt-2.5 border-t border-[#1c1f2b]">
-          <Clock size={12} className="shrink-0" />
-          <span className="text-[10px]">{new Date(item.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-        </div>
-      </div>
-    </motion.div>
-  );
+      </motion.div>
+    );
+  };
 
   return (
     <div className="w-full space-y-5">
@@ -252,7 +216,7 @@ export default function LostFoundPage() {
                   <div>
                     <label className={lbl}>{editItem.type === 'lost' ? 'Owner Name' : 'Finder Name'} *</label>
                     <input name={editItem.type === 'lost' ? 'owner_name' : 'finder_name'} required
-                      defaultValue={editItem.type === 'lost' ? (editItem.item.owner_name || '') : (editItem.item.finder_name || '')} className={inp} />
+                      defaultValue={editItem.type === 'lost' ? (('owner_name' in editItem.item ? editItem.item.owner_name : '') || '') : (('finder_name' in editItem.item ? editItem.item.finder_name : '') || '')} className={inp} />
                   </div>
                   <div><label className={lbl}>Phone *</label><input name="phone" required defaultValue={editItem.item.phone} className={inp} /></div>
                 </div>
@@ -287,7 +251,7 @@ export default function LostFoundPage() {
                   {matchResult.item.location && <p>Location: {matchResult.item.location}</p>}
                   {matchResult.item.remark && <p>Remark: {matchResult.item.remark}</p>}
                   <p className="text-foreground font-semibold mt-2">
-                    {matchResult.type === 'found' ? `Finder: ${matchResult.item.finder_name}` : `Owner: ${matchResult.item.owner_name}`}
+                    {matchResult.type === 'found' ? `Finder: ${'finder_name' in matchResult.item ? matchResult.item.finder_name : ''}` : `Owner: ${'owner_name' in matchResult.item ? matchResult.item.owner_name : ''}`}
                   </p>
                   <p>Phone: {matchResult.item.phone}</p>
                 </div>
@@ -428,7 +392,7 @@ export default function LostFoundPage() {
               ))}
             </div>
 
-            {loading ? (
+            {!initialLoaded ? (
               <div className="flex justify-center py-16"><div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
             ) : viewTab === 'matched' ? (
               matches.length === 0 ? (
@@ -456,7 +420,7 @@ export default function LostFoundPage() {
                               {side.data.location && <p>Location: {side.data.location}</p>}
                               {side.data.remark && <p>Remark: {side.data.remark}</p>}
                               <p className="font-semibold text-foreground mt-2">
-                                {side.role}: {side.data[side.nameKey as keyof Item]}
+                                {side.role}: {side.data[side.nameKey as keyof (LostItem | FoundItem)]}
                               </p>
                               <p>Phone: {side.data.phone}</p>
                             </div>

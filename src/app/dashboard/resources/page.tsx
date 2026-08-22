@@ -1,7 +1,8 @@
 'use client';
 
 import { useAuth } from '@/lib/auth-context';
-import { useState, useEffect, useCallback } from 'react';
+import { useCampusData, Resource } from '@/lib/data-context';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -10,22 +11,10 @@ import {
   ChevronDown
 } from 'lucide-react';
 
-interface Resource {
-  id: string;
-  uploader_name: string;
-  course_name: string;
-  subject_name: string;
-  file_url: string;
-  file_name: string;
-  tips?: string;
-  user_id: string;
-  created_at: string;
-}
-
 export default function ResourcesPage() {
   const { user, authFetch } = useAuth();
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { resources, initialLoaded, refetchResources } = useCampusData();
+
   const [submitting, setSubmitting] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [courseFilter, setCourseFilter] = useState('');
@@ -34,21 +23,6 @@ export default function ResourcesPage() {
   const [editResource, setEditResource] = useState<Resource | null>(null);
   const [editSaving, setEditSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
-
-  const fetchResources = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (courseFilter) params.set('course', courseFilter);
-      if (subjectFilter) params.set('subject', subjectFilter);
-      const res = await authFetch(`/api/resources?${params}`);
-      const data = await res.json();
-      setResources(data.resources || []);
-    } catch { /* ignore */ }
-    setLoading(false);
-  }, [authFetch, courseFilter, subjectFilter]);
-
-  useEffect(() => { fetchResources(); }, [fetchResources]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -68,7 +42,7 @@ export default function ResourcesPage() {
       toast.success('Resource uploaded!');
       form.reset();
       setShowUpload(false);
-      fetchResources();
+      refetchResources();
     } catch { toast.error('Something went wrong'); }
     setSubmitting(false);
   };
@@ -90,7 +64,7 @@ export default function ResourcesPage() {
       if (res.ok) {
         toast.success('Resource updated!');
         setEditResource(null);
-        fetchResources();
+        refetchResources();
       } else {
         const d = await res.json();
         toast.error(d.error || 'Failed to update');
@@ -105,7 +79,7 @@ export default function ResourcesPage() {
     if (res.ok) {
       toast.success('Resource deleted');
       setConfirmDelete(null);
-      fetchResources();
+      refetchResources();
     } else toast.error('Failed to delete');
   };
 
@@ -118,6 +92,8 @@ export default function ResourcesPage() {
   const subjects = [...new Set(resources.map(r => r.subject_name))];
 
   const filteredResources = resources.filter(res => {
+    if (courseFilter && res.course_name !== courseFilter) return false;
+    if (subjectFilter && res.subject_name !== subjectFilter) return false;
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -327,7 +303,7 @@ export default function ResourcesPage() {
       </div>
 
       {/* Resources Grid in Left/Right Multi-Column View */}
-      {loading ? (
+      {!initialLoaded ? (
         <div className="flex justify-center py-16"><div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
       ) : filteredResources.length === 0 ? (
         <div className="glass-card rounded-2xl p-8 sm:p-12 text-center">

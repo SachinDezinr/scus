@@ -1,7 +1,8 @@
 'use client';
 
 import { useAuth } from '@/lib/auth-context';
-import { useState, useEffect, useCallback } from 'react';
+import { useCampusData, Complaint } from '@/lib/data-context';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -10,20 +11,6 @@ import {
   Pencil, Trash2, Save, X, ChevronUp, Eye,
   Users, UserCheck, ShieldAlert
 } from 'lucide-react';
-
-interface Complaint {
-  id: string;
-  item_name: string;
-  class_name: string;
-  department: string;
-  floor: string;
-  description: string;
-  photo_url?: string;
-  status: string;
-  priority?: string;
-  user_id: string;
-  created_at: string;
-}
 
 const STATUS = {
   pending: { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)', icon: Clock },
@@ -42,8 +29,8 @@ type ViewTab = 'all' | 'mine' | 'resolved';
 
 export default function ComplaintsPage() {
   const { user, authFetch } = useAuth();
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { complaints, initialLoaded, refetchComplaints } = useCampusData();
+
   const [submitting, setSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [viewTab, setViewTab] = useState<ViewTab>('all');
@@ -51,18 +38,6 @@ export default function ComplaintsPage() {
   const [editSaving, setEditSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
-
-  const fetchComplaints = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await authFetch('/api/complaints');
-      const data = await res.json();
-      setComplaints(data.complaints || []);
-    } catch { /* ignore */ }
-    setLoading(false);
-  }, [authFetch]);
-
-  useEffect(() => { fetchComplaints(); }, [fetchComplaints]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -76,7 +51,7 @@ export default function ComplaintsPage() {
       form.reset();
       setShowForm(false);
       setViewTab('mine');
-      fetchComplaints();
+      refetchComplaints();
     } catch { toast.error('Something went wrong'); }
     setSubmitting(false);
   };
@@ -89,7 +64,7 @@ export default function ComplaintsPage() {
     });
     if (res.ok) { 
       toast.success(status === 'resolved' ? 'Complaint resolved!' : 'Status updated!'); 
-      fetchComplaints(); 
+      refetchComplaints(); 
     }
     else toast.error('Failed to update');
   };
@@ -106,7 +81,7 @@ export default function ComplaintsPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (res.ok) { toast.success('Updated!'); setEditComplaint(null); fetchComplaints(); }
+    if (res.ok) { toast.success('Updated!'); setEditComplaint(null); refetchComplaints(); }
     else { const d = await res.json(); toast.error(d.error || 'Failed'); }
     setEditSaving(false);
   };
@@ -114,7 +89,7 @@ export default function ComplaintsPage() {
   const handleDelete = async () => {
     if (!confirmDelete) return;
     const res = await authFetch(`/api/complaints?id=${confirmDelete.id}`, { method: 'DELETE' });
-    if (res.ok) { toast.success('Deleted'); setConfirmDelete(null); fetchComplaints(); }
+    if (res.ok) { toast.success('Deleted'); setConfirmDelete(null); refetchComplaints(); }
     else toast.error('Failed to delete');
   };
 
@@ -291,7 +266,7 @@ export default function ComplaintsPage() {
       </div>
 
       {/* ── List in 2-Column Left-Right Grid on Big Screens ── */}
-      {loading ? (
+      {!initialLoaded ? (
         <div className="flex justify-center py-16"><div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
       ) : displayed.length === 0 ? (
         <div className="glass-card rounded-2xl p-8 md:p-12 text-center">
