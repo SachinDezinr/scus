@@ -158,8 +158,13 @@ export async function POST(req: NextRequest) {
       const topMatches = matchedResources.slice(0, 8);
 
       if (topMatches.length > 0) {
-        const queryTermDisplay = searchTerms.length > 0 ? cleanTokens.join(' ').toUpperCase() : 'All Available Resources';
-        reply = `📚 I found **${topMatches.length} study material(s)** for "${queryTermDisplay}":`;
+        if (searchTerms.length > 0) {
+          const queryTermDisplay = cleanTokens.join(' ').toUpperCase();
+          reply = `📚 I found **${topMatches.length} study material(s)** for "${queryTermDisplay}":`;
+        } else {
+          reply = `📚 Here are the latest **uploaded study notes and PYQs**:`;
+        }
+
         topMatches.forEach((r: any) => {
           cards.push({
             type: 'resource',
@@ -351,7 +356,7 @@ export async function POST(req: NextRequest) {
     if (query.includes('hello') || query.includes('hi') || query.includes('hey') || query.includes('help')) {
       reply = `Hello **${user.name}**! 👋 I am your Smart Campus AI Assistant.\n\n` +
         `Here is what you can ask me:\n` +
-        `1. Search Notes & PYQs: "Find study notes", "DSA materials", or "C++"\n` +
+        `1. Search Notes & PYQs: "Find study notes", "Show all PYQs", or specify subjects like "DSA", "DBMS", "OS"\n` +
         `2. Lost & Found Registry: "Lost & Found Registry" or "Find lost wallet"\n` +
         `3. Complaints: "What is the status of my complaints?"\n` +
         (isAdmin 
@@ -420,7 +425,7 @@ export async function POST(req: NextRequest) {
     }
 
     reply = `I couldn't find exact matches for "${rawMessage}". Try asking:\n\n` +
-      `• Resources: "Find study notes", "DSA", or "DBMS"\n` +
+      `• Resources: "Find study notes", "Show all PYQs", or specify any subject like "DBMS", "DSA", "OS"\n` +
       `• Lost & Found: "Lost & Found Registry"\n` +
       `• Complaints: "Check status of my repair requests"\n` +
       (isAdmin ? `• Admin: "System stats overview"` : '');

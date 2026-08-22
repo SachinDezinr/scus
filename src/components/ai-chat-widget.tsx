@@ -46,7 +46,7 @@ export default function AIChatWidget() {
 
   const prompts = user?.role === 'admin' 
     ? ['System stats overview', 'Check active complaints', 'Lost & Found Registry', 'Find study notes']
-    : ['Find study notes', 'Lost & Found Registry', 'Check status of my complaints', 'DSA notes'];
+    : ['Find study notes', 'Show all PYQs and papers', 'Lost & Found Registry', 'Check status of my complaints'];
 
   return (
     <>
@@ -175,26 +175,26 @@ export default function AIChatWidget() {
               </div>
             )}
 
-            {/* Input Bar with expansion on hover/focus */}
+            {/* Input Bar */}
             <div className="p-3 border-t border-[#232634] bg-[#161822] shrink-0">
               <form
                 onSubmit={e => {
                   e.preventDefault();
                   handleSend();
                 }}
-                className="group flex items-center gap-2 transition-all duration-200"
+                className="flex items-center gap-2"
               >
                 <input
                   type="text"
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   placeholder="Ask assistant..."
-                  className="flex-1 px-3 py-2 rounded-lg bg-[#0e0f14] border border-[#262938] text-xs text-white placeholder:text-muted-foreground/50 focus:outline-none transition-all duration-200 group-hover:py-2.5 focus:py-2.5 group-hover:border-primary/60 group-hover:shadow-[0_0_12px_-2px_rgba(79,110,247,0.3)]"
+                  className="flex-1 px-3 py-2 rounded-lg bg-[#0e0f14] border border-[#262938] text-xs text-white placeholder:text-muted-foreground/50 focus:outline-none"
                 />
                 <button
                   type="submit"
                   disabled={!input.trim() || loading}
-                  className="p-2 rounded-lg bg-primary text-white disabled:opacity-50 transition-all duration-200 group-hover:p-2.5"
+                  className="p-2 rounded-lg bg-primary text-white disabled:opacity-50"
                 >
                   <Send size={14} />
                 </button>

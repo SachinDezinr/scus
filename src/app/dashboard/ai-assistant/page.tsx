@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Sparkles, Send, Bot, Search, BookOpen,
-  Building2, Shield, Download, ExternalLink, Lightbulb, RotateCcw
+  Building2, Shield, Download, ExternalLink, FileText, RotateCcw
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { useChat } from '@/lib/chat-context';
@@ -41,32 +41,32 @@ export default function AIAssistantPage() {
         { label: 'Admin Stats', query: 'Show system overview stats', icon: Shield, color: '#ff6b6b' },
         { label: 'Complaints', query: 'Check pending complaints', icon: Building2, color: '#fbbf24' },
         { label: 'Lost & Found', query: 'Lost & Found Registry', icon: Search, color: '#00f5d4' },
-        { label: 'Resources', query: 'Find study notes', icon: BookOpen, color: '#a78bfa' },
+        { label: 'Study Resources', query: 'Find study notes', icon: BookOpen, color: '#a78bfa' },
       ]
     : [
-        { label: 'Notes & PYQs', query: 'Find study notes', icon: BookOpen, color: '#fbbf24' },
+        { label: 'Study Notes', query: 'Find study notes', icon: BookOpen, color: '#fbbf24' },
+        { label: 'Exam PYQs', query: 'Show all PYQs and papers', icon: FileText, color: '#a78bfa' },
         { label: 'Lost & Found', query: 'Lost & Found Registry', icon: Search, color: '#00f5d4' },
         { label: 'My Complaints', query: 'Check status of my complaints', icon: Building2, color: '#ff6b6b' },
-        { label: 'DSA Notes', query: 'DSA notes', icon: Lightbulb, color: '#a78bfa' },
       ];
 
   return (
-    <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col h-[calc(100dvh-5.5rem)] md:h-[calc(100dvh-6.5rem)]">
+    <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col h-[calc(100dvh-4.25rem)] sm:h-[calc(100dvh-5rem)] lg:h-[calc(100dvh-4.5rem)] pb-1 sm:pb-0">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-3 shrink-0 flex items-center justify-between">
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-2 shrink-0 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <Sparkles size={16} className="text-neon" />
-            <span className="text-[11px] font-semibold text-neon uppercase tracking-widest">Natural Language Assistant</span>
+            <Sparkles size={15} className="text-neon" />
+            <span className="text-[10px] sm:text-[11px] font-semibold text-neon uppercase tracking-widest">Natural Language Assistant</span>
           </div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
             AI Campus <span className="gradient-text">Chatbot</span>
           </h1>
         </div>
         {messages.length > 1 && (
           <button
             onClick={clearChat}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass-card text-xs font-semibold text-muted-foreground hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg glass-card text-xs font-semibold text-muted-foreground hover:text-white transition-colors"
             title="Start new conversation"
           >
             <RotateCcw size={13} />
@@ -86,10 +86,10 @@ export default function AIAssistantPage() {
               animate={{ opacity: 1, y: 0 }}
               className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
             >
-              <div className="flex items-start gap-2 max-w-[92%] sm:max-w-[85%]">
+              <div className="flex items-start gap-2 max-w-[95%] sm:max-w-[85%]">
                 {msg.sender === 'bot' && (
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-neon/15 border border-neon/30 flex items-center justify-center text-neon shrink-0 mt-0.5">
-                    <Bot size={16} />
+                    <Bot size={15} />
                   </div>
                 )}
                 <div
@@ -107,7 +107,7 @@ export default function AIAssistantPage() {
                       {msg.cards.map((card, idx) => (
                         <div
                           key={idx}
-                          className="glass-card rounded-xl p-3 border-border bg-secondary/40 text-xs"
+                          className="glass-card rounded-xl p-2.5 sm:p-3 border-border bg-secondary/40 text-xs"
                         >
                           <div className="flex items-center justify-between gap-2 mb-1">
                             <span className="font-bold truncate text-white">{card.title}</span>
@@ -149,7 +149,7 @@ export default function AIAssistantPage() {
           {loading && (
             <div className="flex items-center gap-2 text-muted-foreground text-xs p-2">
               <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              <span>AI is thinking...</span>
+              <span>AI is searching...</span>
             </div>
           )}
           <div ref={endRef} />
@@ -169,26 +169,26 @@ export default function AIAssistantPage() {
           ))}
         </div>
 
-        {/* Input area with expansion on hover/focus */}
-        <div className="p-2.5 sm:p-3 border-t border-border bg-secondary/50 shrink-0">
+        {/* Input area */}
+        <div className="p-2 sm:p-3 border-t border-border bg-secondary/50 shrink-0">
           <form
             onSubmit={e => {
               e.preventDefault();
               handleSend();
             }}
-            className="group flex items-center gap-2 transition-all duration-200"
+            className="flex items-center gap-2"
           >
             <input
               type="text"
               value={input}
               onChange={e => setInput(e.target.value)}
-              placeholder="Ask about resources, lost items, or complaints..."
-              className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-secondary border border-border text-xs sm:text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-all duration-200 group-hover:py-3 focus:py-3 group-hover:border-primary/60 group-hover:shadow-[0_0_15px_-3px_rgba(79,110,247,0.25)]"
+              placeholder="Ask for notes, PYQs, lost items, or issues..."
+              className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-secondary border border-border text-xs sm:text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-all duration-150"
             />
             <button
               type="submit"
               disabled={!input.trim() || loading}
-              className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-primary to-[#7b61ff] text-white font-semibold text-xs sm:text-sm flex items-center gap-1.5 disabled:opacity-50 hover:shadow-lg transition-all duration-200 group-hover:py-3 shrink-0"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-primary to-[#7b61ff] text-white font-semibold text-xs sm:text-sm flex items-center gap-1.5 disabled:opacity-50 hover:shadow-lg transition-all duration-150 shrink-0"
             >
               <span>Send</span>
               <Send size={13} />
