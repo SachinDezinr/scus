@@ -61,18 +61,82 @@ export async function POST(req: NextRequest) {
     let reply = '';
     const cards: ActionableCard[] = [];
 
-    // ── ADMIN / SYSTEM OVERVIEW INTENT ──
-    const isAdminIntent = 
-      query.includes('stat') ||
-      query.includes('overview') ||
-      query.includes('summary') ||
-      query.includes('admin') ||
-      query.includes('analytics') ||
+    // ── 1. COMPLAINTS INTENT (Checked first or specifically for user complaint inquiries) ──
+    const isUserComplaintQuery =
+      query.includes('my complaint') ||
+      query.includes('my complaints') ||
+      query.includes('complaint status') ||
+      query.includes('status of my complaint') ||
+      query.includes('check status of my') ||
+      query.includes('my ticket') ||
+      query.includes('my report') ||
+      query.includes('complaint') ||
+      query.includes('broken') ||
+      query.includes('repair') ||
+      query.includes('fan') ||
+      query.includes('projector') ||
+      query.includes('light') ||
+      query.includes('ac') ||
+      query.includes('chair') ||
+      query.includes('bench');
+
+    if (isUserComplaintQuery && !query.includes('admin stats') && !query.includes('system overview')) {
+      if (isAdmin && !query.includes('my complaint') && !query.includes('my ticket')) {
+        const allComplaints = await sql`SELECT * FROM complaints ORDER BY created_at DESC LIMIT 6`;
+        reply = `🛠️ Admin Complaint Overview: Showing recent campus complaints:`;
+        allComplaints.forEach((c: any) => {
+          cards.push({
+            type: 'complaint',
+            id: c.id,
+            title: c.item_name,
+            subtitle: `${c.class_name} • ${c.department}`,
+            meta: `Status: ${c.status.toUpperCase()} • Priority: ${c.priority?.toUpperCase() || 'MEDIUM'}`,
+            link: '/dashboard/admin',
+            badge: c.status.toUpperCase(),
+            badgeColor: c.status === 'resolved' ? '#00f5d4' : c.status === 'in progress' ? '#3b82f6' : '#fbbf24',
+          });
+        });
+      } else {
+        const userComplaints = await sql`
+          SELECT * FROM complaints 
+          WHERE user_id = ${user.userId}::uuid 
+          ORDER BY created_at DESC LIMIT 6
+        `;
+
+        if (userComplaints.length > 0) {
+          reply = `🛠️ Here are the complaints registered under your account (**${userComplaints.length} found**):`;
+          userComplaints.forEach((c: any) => {
+            cards.push({
+              type: 'complaint',
+              id: c.id,
+              title: c.item_name,
+              subtitle: `${c.class_name} • ${c.department}`,
+              meta: `Status: ${c.status.toUpperCase()} • Priority: ${c.priority?.toUpperCase() || 'MEDIUM'}`,
+              link: '/dashboard/complaints',
+              badge: c.status.toUpperCase(),
+              badgeColor: c.status === 'resolved' ? '#00f5d4' : c.status === 'in progress' ? '#3b82f6' : '#fbbf24',
+            });
+          });
+        } else {
+          reply = `ℹ️ You currently have no complaints registered under your account.\n\nIf you noticed any broken equipment, lighting, or classroom infrastructure, you can file a new ticket on the Infrastructure Complaints page!`;
+        }
+      }
+
+      return NextResponse.json({ reply, cards });
+    }
+
+    // ── 2. ADMIN / SYSTEM OVERVIEW INTENT ──
+    const isAdminIntent =
+      query.includes('admin stats') ||
+      query.includes('admin dashboard') ||
+      query.includes('system overview') ||
+      query.includes('system stats') ||
+      query.includes('analytics overview') ||
       query.includes('total users') ||
       query.includes('how many users') ||
-      query.includes('how many complaints');
+      query.includes('how many total complaints');
 
-    if (isAdminIntent && (query.includes('admin') || query.includes('stat') || query.includes('users') || query.includes('overview'))) {
+    if (isAdminIntent) {
       if (isAdmin) {
         const [complaintStats] = await sql`
           SELECT 
@@ -102,17 +166,17 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ reply, cards });
       } else {
-        reply = `🔒 Access Restricted: System-wide overview metrics and administrative control panels are reserved exclusively for Administrator accounts.\n\nAs a student, you can ask me to:\n` +
+        reply = `🔒 Access Restricted: System-wide administrative statistics are reserved exclusively for Administrator accounts.\n\nAs a student, you can ask me to:\n` +
+          `• Check status of your complaints ("My complaints")\n` +
           `• Search study notes & PYQs\n` +
           `• Look up lost & found items\n` +
-          `• Check the status of your own infrastructure complaints\n` +
           `• Report new issues or share study materials!`;
 
         return NextResponse.json({ reply, cards: [] });
       }
     }
 
-    // ── SMART RESOURCE SEARCH INTENT ──
+    // ── 3. SMART RESOURCE SEARCH INTENT ──
     const stopWords = new Set([
       'find', 'search', 'show', 'get', 'resource', 'resources', 'note', 'notes',
       'pyq', 'pyqs', 'study', 'materials', 'material', 'pdf', 'pdfs', 'for', 'the',
@@ -185,7 +249,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ reply, cards });
     }
 
-    // ── LOST AND FOUND INTENT ──
+    // ── 4. LOST AND FOUND INTENT ──
     const isLostFoundQuery = 
       query.includes('lost') ||
       query.includes('found') ||
@@ -294,79 +358,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ reply, cards });
     }
 
-    // ── COMPLAINTS INTENT ──
-    if (
-      query.includes('complaint') ||
-      query.includes('broken') ||
-      query.includes('repair') ||
-      query.includes('issue') ||
-      query.includes('fan') ||
-      query.includes('light') ||
-      query.includes('projector') ||
-      query.includes('ac') ||
-      query.includes('chair') ||
-      query.includes('bench') ||
-      query.includes('status')
-    ) {
-      if (isAdmin) {
-        const allComplaints = await sql`SELECT * FROM complaints ORDER BY created_at DESC LIMIT 5`;
-        reply = `🛠️ Admin Complaint Overview: Showing recent complaints system-wide:`;
-        allComplaints.forEach((c: any) => {
-          cards.push({
-            type: 'complaint',
-            id: c.id,
-            title: c.item_name,
-            subtitle: `${c.class_name} • ${c.department}`,
-            meta: `Status: ${c.status.toUpperCase()} • Priority: ${c.priority?.toUpperCase() || 'MEDIUM'}`,
-            link: '/dashboard/admin',
-            badge: c.status.toUpperCase(),
-            badgeColor: c.status === 'resolved' ? '#00f5d4' : c.status === 'in progress' ? '#3b82f6' : '#fbbf24',
-          });
-        });
-      } else {
-        const userComplaints = await sql`
-          SELECT * FROM complaints 
-          WHERE user_id = ${user.userId}::uuid 
-          ORDER BY created_at DESC LIMIT 5
-        `;
-
-        if (userComplaints.length > 0) {
-          reply = `🛠️ You have **${userComplaints.length} complaint(s)** registered under your account:`;
-          userComplaints.forEach((c: any) => {
-            cards.push({
-              type: 'complaint',
-              id: c.id,
-              title: c.item_name,
-              subtitle: `${c.class_name} • ${c.department}`,
-              meta: `Priority: ${c.priority?.toUpperCase() || 'MEDIUM'}`,
-              link: '/dashboard/complaints',
-              badge: c.status.toUpperCase(),
-              badgeColor: c.status === 'resolved' ? '#00f5d4' : c.status === 'in progress' ? '#3b82f6' : '#fbbf24',
-            });
-          });
-        } else {
-          reply = `ℹ️ You currently have no active complaints filed. If something on campus needs repair, you can submit a report under Infrastructure Complaints!`;
-        }
-      }
-
-      return NextResponse.json({ reply, cards });
-    }
-
-    // ── GREETING / HELP ──
+    // ── 5. GREETING / HELP ──
     if (query.includes('hello') || query.includes('hi') || query.includes('hey') || query.includes('help')) {
       reply = `Hello **${user.name}**! 👋 I am your Smart Campus AI Assistant.\n\n` +
         `Here is what you can ask me:\n` +
-        `1. Search Notes & PYQs: "Find study notes", "Show all PYQs", or specify subjects like "DSA", "DBMS", "OS"\n` +
-        `2. Lost & Found Registry: "Lost & Found Registry" or "Find lost wallet"\n` +
-        `3. Complaints: "What is the status of my complaints?"\n` +
+        `1. My Complaints: "Check status of my complaints" or "Show my complaints"\n` +
+        `2. Search Notes & PYQs: "Find study notes", "Show all PYQs", or specify subjects like "DSA", "DBMS", "OS"\n` +
+        `3. Lost & Found Registry: "Lost & Found Registry" or "Find lost wallet"\n` +
         (isAdmin 
-          ? `4. Admin Dashboard Stats: "Show system overview stats"` 
-          : `4. Note: Administrative stats are restricted to Admin accounts.`);
+          ? `4. Admin Dashboard Stats: "Admin stats overview"` 
+          : `4. Note: Administrative system metrics are restricted to Admin accounts.`);
 
       return NextResponse.json({ reply, cards: [] });
     }
 
-    // ── FALLBACK SEARCH WITH ACRONYM SUPPORT ──
+    // ── 6. FALLBACK SEARCH WITH ACRONYM SUPPORT ──
     const searchToken = cleanTokens[0] || query;
     let fallbackTerms = [searchToken];
     if (SUBJECT_ACRONYMS[searchToken]) {
@@ -425,10 +431,10 @@ export async function POST(req: NextRequest) {
     }
 
     reply = `I couldn't find exact matches for "${rawMessage}". Try asking:\n\n` +
+      `• Complaints: "Check status of my complaints"\n` +
       `• Resources: "Find study notes", "Show all PYQs", or specify any subject like "DBMS", "DSA", "OS"\n` +
       `• Lost & Found: "Lost & Found Registry"\n` +
-      `• Complaints: "Check status of my repair requests"\n` +
-      (isAdmin ? `• Admin: "System stats overview"` : '');
+      (isAdmin ? `• Admin: "Admin stats overview"` : '');
 
     return NextResponse.json({ reply, cards: [] });
   } catch (err) {
