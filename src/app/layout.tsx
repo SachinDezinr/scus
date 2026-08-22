@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { VisualEditsMessenger } from "orchids-visual-edits";
 import { AuthProvider } from "@/lib/auth-context";
+import { DataProvider } from "@/lib/data-context";
 import { ChatProvider } from "@/lib/chat-context";
 import { Toaster } from "sonner";
 
@@ -34,20 +35,22 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <AuthProvider>
-          <ChatProvider>
-            {children}
-            <Toaster
-              theme="dark"
-              position="top-right"
-              toastOptions={{
-                style: {
-                  background: '#12121a',
-                  border: '1px solid rgba(168, 139, 250, 0.15)',
-                  color: '#e8e6f0',
-                },
-              }}
-            />
-          </ChatProvider>
+          <DataProvider>
+            <ChatProvider>
+              {children}
+              <Toaster
+                theme="dark"
+                position="top-right"
+                toastOptions={{
+                  style: {
+                    background: '#12121a',
+                    border: '1px solid rgba(168, 139, 250, 0.15)',
+                    color: '#e8e6f0',
+                  },
+                }}
+              />
+            </ChatProvider>
+          </DataProvider>
         </AuthProvider>
         <VisualEditsMessenger />
       </body>
