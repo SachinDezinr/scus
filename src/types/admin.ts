@@ -40,6 +40,17 @@ export interface FoundItem {
   created_at: string;
 }
 
+export interface MatchedItem {
+  id: string;
+  lost_item_id?: string;
+  found_item_id?: string;
+  match_score: number;
+  lost_item_data: LostItem;
+  found_item_data: FoundItem;
+  expires_at: string;
+  created_at: string;
+}
+
 export interface Resource {
   id: string;
   uploader_name: string;

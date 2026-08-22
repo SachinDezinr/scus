@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Filter, Building2, MapPin, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
-import { Complaint } from '../../types/admin';
+import { Complaint } from '@/types/admin';
 
 interface AdminComplaintsTabProps {
   complaints: Complaint[];

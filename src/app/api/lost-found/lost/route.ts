@@ -1,27 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql, ensureTablesExist } from '@/lib/db';
 import { getTokenFromRequest } from '@/lib/auth';
-
-function computeMatchScore(lost: Record<string, string | null>, found: Record<string, string | null>): number {
-  let score = 0;
-  const maxScore = 100;
-
-  if (lost.brand && found.brand && lost.brand.toLowerCase() === found.brand.toLowerCase()) score += 40;
-  if (lost.item_name && found.item_name) {
-    const lostName = lost.item_name.toLowerCase();
-    const foundName = found.item_name.toLowerCase();
-    if (lostName === foundName) score += 30;
-    else if (lostName.includes(foundName) || foundName.includes(lostName)) score += 20;
-  }
-  if (lost.color && found.color && lost.color.toLowerCase() === found.color.toLowerCase()) score += 20;
-  if (lost.location && found.location) {
-    const lostLoc = lost.location.toLowerCase();
-    const foundLoc = found.location.toLowerCase();
-    if (lostLoc === foundLoc) score += 10;
-    else if (lostLoc.includes(foundLoc) || foundLoc.includes(lostLoc)) score += 5;
-  }
-  return (score / maxScore) * 100;
-}
+import { computeMatchScore } from '@/lib/matching';
 
 export async function POST(req: NextRequest) {
   try {

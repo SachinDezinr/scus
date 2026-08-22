@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen, FileText, Trash2, User, Eye } from 'lucide-react';
-import { Resource } from '../../types/admin';
+import { Resource } from '@/types/admin';
 
 interface AdminResourcesTabProps {
   resources: Resource[];

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { AdminTabType } from '../../types/admin';
+import { AdminTabType } from '@/types/admin';
 import { BarChart3, Building2, CheckCircle2, Search, Package, BookOpen } from 'lucide-react';
 
 interface TabItem {
