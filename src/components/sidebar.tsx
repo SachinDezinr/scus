@@ -114,17 +114,17 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile top navigation bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-[#0e0f14] border-b border-[#1c1e27] flex items-center justify-between px-4">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 bg-[#0e0f14] border-b border-[#1c1e27] flex items-center justify-between px-4">
         <div className="flex items-center gap-2.5">
-          <Logo size={24} />
+          <Logo size={26} />
           <span className="text-xs font-bold tracking-tight text-white uppercase">Campus Utility</span>
         </div>
         <button
           onClick={() => setMobileOpen(v => !v)}
-          className="p-1.5 rounded-md hover:bg-[#161822] text-muted-foreground hover:text-white transition-colors"
+          className="p-2 rounded-md hover:bg-[#161822] text-muted-foreground hover:text-white transition-colors"
           aria-label="Toggle Navigation"
         >
-          {mobileOpen ? <X size={19} /> : <Menu size={19} />}
+          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
@@ -140,11 +140,11 @@ export default function Sidebar() {
               onClick={() => setMobileOpen(false)}
             />
             <motion.aside
-              initial={{ x: -260 }}
+              initial={{ x: -230 }}
               animate={{ x: 0 }}
-              exit={{ x: -260 }}
+              exit={{ x: -230 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="lg:hidden fixed left-0 top-0 bottom-0 w-[260px] z-50 bg-[#0e0f14] border-r border-[#1c1e27]"
+              className="lg:hidden fixed left-0 top-0 bottom-0 w-[230px] z-50 bg-[#0e0f14] border-r border-[#1c1e27]"
             >
               <NavContent onNav={() => setMobileOpen(false)} />
             </motion.aside>
