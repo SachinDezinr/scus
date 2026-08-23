@@ -116,8 +116,8 @@ export default function Sidebar() {
       {/* Mobile top navigation bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 bg-[#0e0f14] border-b border-[#1c1e27] flex items-center justify-between px-4">
         <div className="flex items-center gap-2.5">
-          <Logo size={26} />
-          <span className="text-xs font-bold tracking-tight text-white uppercase">Campus Utility</span>
+          <Logo size={27} />
+          <span className="text-s font-bold tracking-tight text-white uppercase">Campus Utility</span>
         </div>
         <button
           onClick={() => setMobileOpen(v => !v)}
