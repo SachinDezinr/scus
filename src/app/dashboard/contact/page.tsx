@@ -3,12 +3,6 @@
 import { motion } from 'framer-motion';
 import { Mail, Linkedin, Instagram, ExternalLink, MessageSquare } from 'lucide-react';
 
-const channels =<dyad-write path="src/app/dashboard/contact/page.tsx" description="Align contact page layout and headers with the dashboard design">
-'use client';
-
-import { motion } from 'framer-motion';
-import { Mail, Linkedin, Instagram, ExternalLink, MessageSquare } from 'lucide-react';
-
 const channels = [
   {
     title: 'Electronic Mail',
