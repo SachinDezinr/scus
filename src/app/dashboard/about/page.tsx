@@ -1,26 +1,27 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Shield, Search, BookOpen, Building2, Cpu, CheckCircle2 } from 'lucide-react';
+import { Shield, Search, BookOpen, Building2, Cpu, CheckCircle2, Info } from 'lucide-react';
 
 export default function AboutPage() {
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-5xl w-full mx-auto">
+    <div className="w-full space-y-5">
       {/* Top Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="pb-5 sm:pb-6 border-b border-[#1f2230]">
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-primary font-semibold">Institutional Specs</span>
+          <Info size={16} className="text-primary" />
+          <span className="text-[11px] font-semibold text-primary uppercase tracking-widest">Institutional Specs</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
           About <span className="gradient-text">Campus Utility System</span>
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 max-w-2xl leading-relaxed">
+        <p className="text-muted-foreground mt-0.5 text-xs sm:text-sm">
           Architected for high campus efficiency, collaborative peer-to-peer study material circulation, lost item recovery, and rapid infrastructure upkeep.
         </p>
       </motion.div>
 
       {/* Core Utility Modules */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {[
           {
             title: 'Lost & Found Registry',
@@ -52,11 +53,11 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="glass-card glass-card-hover rounded-xl p-5 sm:p-6 border border-[#232634] flex flex-col justify-between"
+            className="glass-card glass-card-hover rounded-2xl p-5 border border-[#232634] flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between gap-2 mb-3">
-                <div className="w-9 h-9 rounded-lg bg-[#191b24] border border-[#262a3c] flex items-center justify-center text-primary">
+                <div className="w-9 h-9 rounded-xl bg-[#191b24] border border-[#262a3c] flex items-center justify-center text-primary">
                   <mod.icon size={17} />
                 </div>
                 <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">

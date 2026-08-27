@@ -51,22 +51,23 @@ export default function AIAssistantPage() {
       ];
 
   return (
-    <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col h-[calc(100dvh-4.25rem)] sm:h-[calc(100dvh-5rem)] lg:h-[calc(100dvh-4.5rem)] pb-1 sm:pb-0">
+    <div className="w-full space-y-4 flex-1 flex flex-col h-[calc(100dvh-5.5rem)] lg:h-[calc(100dvh-4.5rem)]">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-2 shrink-0 flex items-center justify-between">
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="shrink-0 flex items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <Sparkles size={15} className="text-neon" />
-            <span className="text-[10px] sm:text-[11px] font-semibold text-neon uppercase tracking-widest">Natural Language Assistant</span>
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles size={16} className="text-neon" />
+            <span className="text-[11px] font-semibold text-neon uppercase tracking-widest">Natural Language Assistant</span>
           </div>
-          <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
             AI Campus <span className="gradient-text">Chatbot</span>
           </h1>
+          <p className="text-muted-foreground mt-0.5 text-xs sm:text-sm">Ask about study resources, lost items, infrastructure complaints, or administrative stats.</p>
         </div>
         {messages.length > 1 && (
           <button
             onClick={clearChat}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg glass-card text-xs font-semibold text-muted-foreground hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl glass-card text-xs font-semibold text-muted-foreground hover:text-white transition-colors shrink-0"
             title="Start new conversation"
           >
             <RotateCcw size={13} />
@@ -78,7 +79,7 @@ export default function AIAssistantPage() {
       {/* Main Chat Container */}
       <div className="flex-1 min-h-0 glass-card rounded-2xl border border-border flex flex-col overflow-hidden">
         {/* Messages Feed */}
-        <div className="flex-1 min-h-0 p-3 sm:p-5 overflow-y-auto space-y-3.5">
+        <div className="flex-1 min-h-0 p-3.5 sm:p-5 overflow-y-auto space-y-3.5">
           {messages.map(msg => (
             <motion.div
               key={msg.id}
@@ -86,7 +87,7 @@ export default function AIAssistantPage() {
               animate={{ opacity: 1, y: 0 }}
               className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
             >
-              <div className="flex items-start gap-2 max-w-[95%] sm:max-w-[85%]">
+              <div className="flex items-start gap-2.5 max-w-[95%] sm:max-w-[85%]">
                 {msg.sender === 'bot' && (
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-neon/15 border border-neon/30 flex items-center justify-center text-neon shrink-0 mt-0.5">
                     <Bot size={15} />
