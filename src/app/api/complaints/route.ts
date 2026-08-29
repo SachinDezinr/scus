@@ -67,12 +67,8 @@ export async function GET(req: NextRequest) {
 
     await ensureTablesExist();
 
-    let complaints;
-    if (user.role === 'admin') {
-      complaints = await sql`SELECT * FROM complaints ORDER BY created_at DESC`;
-    } else {
-      complaints = await sql`SELECT * FROM complaints WHERE user_id = ${user.userId}::uuid ORDER BY created_at DESC`;
-    }
+    // Fetch all complaints so any campus student/faculty can see active & resolved complaints campus-wide
+    const complaints = await sql`SELECT * FROM complaints ORDER BY created_at DESC`;
 
     return NextResponse.json({ complaints });
   } catch (err) {
