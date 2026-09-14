@@ -44,6 +44,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Required fields missing' }, { status: 400 });
     }
 
+    if (image && image.size > 0) {
+      const fileCheck = validateUploadedFile(image, {
+        maxSizeMB: 5,
+        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+      });
+      if (!fileCheck.valid) {
+        return NextResponse.json({ error: fileCheck.error }, { status: 400 });
+      }
+    }
+
     let image_url: string | null = null;
     if (image && image.size > 0) {
       const buffer = Buffer.from(await image.arrayBuffer());
