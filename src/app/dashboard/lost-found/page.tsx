@@ -5,6 +5,7 @@ import { useCampusData, LostItem, FoundItem, MatchedItem } from '@/lib/data-cont
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { ImageUploadDropzone } from '@/components/ui/ImageUploadDropzone';
 import {
   Search, Plus, Eye, Package, MapPin, Phone, User,
   Tag, MessageSquare, Sparkles, X, Clock, CheckCircle2,
@@ -355,7 +356,7 @@ export default function LostFoundPage() {
                   <div><label className={lbl}>Phone *</label><input name="phone" required className={inp} placeholder="Phone number" /></div>
                 </div>
                 <div><label className={lbl}>Remark</label><textarea name="remark" rows={2} className={inp} placeholder="Additional details (optional)" /></div>
-                <div><label className={lbl}>Image (optional)</label><input type="file" name="image" accept="image/jpeg,image/png" className={inp} /></div>
+                <ImageUploadDropzone name="image" label="Item Image" optional />
                 <button type="submit" disabled={submitting}
                   className="w-full py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-coral to-[#ff8f6b] text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 disabled:opacity-50">
                   {submitting ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Plus size={16} /> Submit Report</>}
@@ -382,7 +383,7 @@ export default function LostFoundPage() {
                   <div><label className={lbl}>Phone *</label><input name="phone" required className={inp} placeholder="Phone number" /></div>
                 </div>
                 <div><label className={lbl}>Remark</label><textarea name="remark" rows={2} className={inp} placeholder="Additional details (optional)" /></div>
-                <div><label className={lbl}>Image (optional)</label><input type="file" name="image" accept="image/jpeg,image/png" className={inp} /></div>
+                <ImageUploadDropzone name="image" label="Item Image" optional />
                 <button type="submit" disabled={submitting}
                   className="w-full py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-neon to-[#00d4b4] text-[#0a0a0f] font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 disabled:opacity-50">
                   {submitting ? <div className="w-4 h-4 border-2 border-[#0a0a0f] border-t-transparent rounded-full animate-spin" /> : <><Plus size={16} /> Submit Report</>}

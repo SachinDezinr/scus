@@ -5,6 +5,7 @@ import { useCampusData, Complaint } from '@/lib/data-context';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { ImageUploadDropzone } from '@/components/ui/ImageUploadDropzone';
 import {
   Building2, Plus, Camera, Clock, CheckCircle2,
   AlertCircle, Loader2, MapPin, FileText, Sparkles,
@@ -227,13 +228,7 @@ export default function ComplaintsPage() {
                   </div>
                 </div>
                 <div><label className={lbl}>Description *</label><textarea name="description" required rows={3} className={inp} placeholder="Describe the issue in detail..." /></div>
-                <div>
-                  <label className={lbl}>Photo (optional)</label>
-                  <div className="flex items-center gap-2">
-                    <Camera size={14} className="text-muted-foreground shrink-0" />
-                    <input type="file" name="photo" accept="image/jpeg,image/png" className={inp} />
-                  </div>
-                </div>
+                <ImageUploadDropzone name="photo" label="Photo / Evidence" optional />
                 <button type="submit" disabled={submitting}
                   className="w-full py-2.5 md:py-3 rounded-xl bg-gradient-to-r from-coral to-[#ff8f6b] text-white font-semibold text-xs md:text-sm flex items-center justify-center gap-2 disabled:opacity-50">
                   {submitting ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Plus size={15} /> Submit Complaint</>}
