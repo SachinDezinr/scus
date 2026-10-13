@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql, ensureTablesExist } from '@/lib/db';
 import { getTokenFromRequest } from '@/lib/auth';
+import { validateUploadedFile } from '@/lib/security';
 
 function computeMatchScore(lost: Record<string, string | null>, found: Record<string, string | null>): number {
   let score = 0;
