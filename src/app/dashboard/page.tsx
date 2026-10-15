@@ -94,7 +94,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="pt-5 mt-4 border-t border-[#1c1f2b] flex items-center justify-between">
-              <Link href="/dashboard/lost-found" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+              <Link href="/dashboard/lost-found" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
                 Open Registry <ArrowRight size={13} />
               </Link>
             </div>
@@ -112,7 +112,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="pt-5 mt-4 border-t border-[#1c1f2b] flex items-center justify-between">
-              <Link href="/dashboard/resources" className="text-xs font-semibold text-amber hover:underline flex items-center gap-1">
+              <Link href="/dashboard/resources" className="text-sm font-semibold text-amber hover:underline flex items-center gap-1">
                 Browse Repository <ArrowRight size={13} />
               </Link>
             </div>
@@ -130,7 +130,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="pt-5 mt-4 border-t border-[#1c1f2b] flex items-center justify-between">
-              <Link href="/dashboard/complaints" className="text-xs font-semibold text-rose-400 hover:underline flex items-center gap-1">
+              <Link href="/dashboard/complaints" className="text-sm font-semibold text-rose-400 hover:underline flex items-center gap-1">
                 File Ticket <ArrowRight size={13} />
               </Link>
             </div>
