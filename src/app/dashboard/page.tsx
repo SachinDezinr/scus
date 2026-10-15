@@ -93,8 +93,8 @@ export default function DashboardPage() {
                 Automated attribute matching across color, brand, location, and item type with direct student contact.
               </p>
             </div>
-            <div className="pt-5 mt-4 border-t border-[#10b981] flex items-center justify-between">
-              <Link href="/dashboard/lost-found" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
+            <div className="pt-5 mt-4 border-t border-[#1c1f2b] flex items-center justify-between">
+              <Link href="/dashboard/lost-found" className="text-sm font-semibold text-neon hover:underline flex items-center gap-1">
                 Open Registry <ArrowRight size={13} />
               </Link>
             </div>
