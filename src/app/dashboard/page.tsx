@@ -85,7 +85,7 @@ export default function DashboardPage() {
           {/* Lost & Found */}
           <div className="glass-card glass-card-hover rounded-xl p-5 flex flex-col justify-between transition-all duration-200">
             <div>
-              <div className="w-9 h-9 rounded-lg bg-[#1b1e2a] border border-[#272b3c] flex items-center justify-center text-primary mb-4">
+              <div className="w-9 h-9 rounded-lg bg-[#1b1e2a] border border-[#272b3c] flex items-center justify-center text-neon mb-4">
                 <Search size={18} />
               </div>
               <h3 className="text-base font-bold text-white mb-1.5">Lost & Found Registry</h3>
