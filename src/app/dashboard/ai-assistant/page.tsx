@@ -89,14 +89,14 @@ export default function AIAssistantPage() {
             >
               <div className="flex items-start gap-2.5 max-w-[95%] sm:max-w-[85%]">
                 {msg.sender === 'bot' && (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-neon/15 border border-neon/30 flex items-center justify-center text-neon shrink-0 mt-0.5">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-primary/15 border border-neon/30 flex items-center justify-center text-neon shrink-0 mt-0.5">
                     <Bot size={15} />
                   </div>
                 )}
                 <div
                   className={`rounded-2xl p-3 sm:p-4 leading-relaxed whitespace-pre-wrap text-xs sm:text-sm ${
                     msg.sender === 'user'
-                      ? 'bg-gradient-to-r from-primary to-[#7b61ff] text-white rounded-tr-xs'
+                      ? 'bg-gradient-to-r from-primary to-neon text-white rounded-tr-xs'
                       : 'glass-card bg-secondary/80 border-border text-foreground rounded-tl-xs'
                   }`}
                 >
@@ -189,7 +189,7 @@ export default function AIAssistantPage() {
             <button
               type="submit"
               disabled={!input.trim() || loading}
-              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-primary to-[#7b61ff] text-white font-semibold text-xs sm:text-sm flex items-center gap-1.5 disabled:opacity-50 hover:shadow-lg transition-all duration-150 shrink-0"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-primary to-neon text-white font-semibold text-xs sm:text-sm flex items-center gap-1.5 disabled:opacity-50 hover:shadow-lg transition-all duration-150 shrink-0"
             >
               <span>Send</span>
               <Send size={13} />
