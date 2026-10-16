@@ -56,7 +56,7 @@ export default function AIAssistantPage() {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="shrink-0 flex items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Sparkles size={16} className="text-neon" />
+            <Sparkles size={16} className="text-primary" />
             <span className="text-[11px] font-semibold text-primary uppercase tracking-widest">Natural Language Assistant</span>
           </div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
@@ -89,7 +89,7 @@ export default function AIAssistantPage() {
             >
               <div className="flex items-start gap-2.5 max-w-[95%] sm:max-w-[85%]">
                 {msg.sender === 'bot' && (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-neon/15 border border-neon/30 flex items-center justify-center text-primary shrink-0 mt-0.5">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shrink-0 mt-0.5">
                     <Bot size={15} />
                   </div>
                 )}
