@@ -189,7 +189,7 @@ export default function AIAssistantPage() {
             <button
               type="submit"
               disabled={!input.trim() || loading}
-              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-primary to-neon text-white font-semibold text-xs sm:text-sm flex items-center gap-1.5 disabled:opacity-50 hover:shadow-lg transition-all duration-150 shrink-0"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-primary text-white font-semibold text-xs sm:text-sm flex items-center gap-1.5 disabled:opacity-50 hover:shadow-lg transition-all duration-150 shrink-0"
             >
               <span>Send</span>
               <Send size={13} />
