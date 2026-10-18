@@ -115,7 +115,7 @@
 .glass-card {
   background: #13141b;
   border: 1px solid #232634;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.35);
   transition: border-color 0.25s ease, 
               transform 0.25s ease, 
               box-shadow 0.25s ease;
@@ -124,9 +124,9 @@
 /* Subtle glowing hover effect on overview cards */
 @media (hover: hover) and (min-width: 1024px) {
   .glass-card-hover:hover {
-    border-color: rgba(79, 110, 245, 0.45);
+    border-color: rgba(80, 110, 245, 0.45);
     transform: translateY(-2px);
-    box-shadow: 0 0 16px -3px rgba(79, 110, 245, 0.2),
+    box-shadow: 0 0 16px -3px rgba(80, 110, 245, 0.2),
                 0 6px 18px -4px rgba(0, 0, 0, 0.5);
   }
 
@@ -147,7 +147,7 @@
 .mesh-bg {
   background-color: #0b0c10;
   background-image: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79, 110, 247, 0.12), transparent 70%),
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79, 110, 245, 0.12), transparent 70%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size: 100% 100%, 32px 32px;
 }
